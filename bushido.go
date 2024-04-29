@@ -9,6 +9,7 @@ import (
 
 func shell(conn *net.Conn) {
 	reader := bufio.NewReader(os.Stdin)
+L: //Labeled the for loop with L if i need to break it from switch. Faster than if statements. Works.
 	for {
 		fmt.Print("PS > ")
 		command, err := reader.ReadString('\n')
@@ -16,27 +17,29 @@ func shell(conn *net.Conn) {
 			fmt.Println("Error reading input:", err)
 			continue
 		}
-		if command == "\n" {
+		switch command {
+		case "\n":
 			continue
+		case "cls\n":
+			continue
+		case "bg\n":
+			break L
+		case "exit\n":
+			break L
+		default:
+			(*conn).Write([]byte(command))
+			//time.Sleep(1 * time.Second) Ma ila 3azeh only for testing
+			request := make([]byte, 9000)
+			read_len, err := (*conn).Read(request)
+			if read_len == 0 {
+				fmt.Println("Read Length is 0")
+			}
+			if err != nil {
+				os.Exit(0)
+			}
+			reply := string(request[:read_len])
+			fmt.Println(reply)
 		}
-		if command == "bg\n" {
-			break
-		}
-		if command == "exit\n" {
-			break
-		}
-		(*conn).Write([]byte(command))
-		//time.Sleep(1 * time.Second) Ma ila 3azeh only for testing
-		request := make([]byte, 9000)
-		read_len, err := (*conn).Read(request)
-		if read_len == 0 {
-			fmt.Println("Read Length is 0")
-		}
-		if err != nil {
-			os.Exit(0)
-		}
-		reply := string(request[:read_len])
-		fmt.Println(reply)
 	}
 }
 

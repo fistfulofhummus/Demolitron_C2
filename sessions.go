@@ -25,7 +25,6 @@ func (ll *SessionList) registerSession(port string, conn net.Conn) {
 		Status: "Active",
 		Conn:   conn,
 	}
-
 	// Add to the head of the linked list
 	newSession.Next = ll.Head
 	ll.Head = newSession
@@ -55,7 +54,7 @@ func (ll *SessionList) closeSessions() {
 	fmt.Println()
 	current := ll.Head
 	for current != nil {
-		fmt.Println("Unit on ", current.id, " lost")
+		fmt.Println("Unit on", current.id, "lost")
 		current.Conn.Close()
 		current.Conn = nil // Clear the connections list
 
@@ -69,13 +68,13 @@ func openSession(id int, sl *SessionList) {
 	//sl.displaySessions()
 	current := sl.Head
 	if current == nil {
-		fmt.Println("Session not found")
+		fmt.Println("\nSession not found\n")
 		return
 	}
 	for current.id != id && current != nil {
 		current = current.Next
 		if current == nil {
-			fmt.Println("Session not found")
+			fmt.Println("\nSession not found\n")
 			return
 		}
 	}

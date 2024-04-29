@@ -43,6 +43,7 @@ type SessionList struct {
 
 func main() {
 	fmt.Println("CODENAME: SAMURAI")
+	fmt.Println("Original Author: FistfulofHummus")
 	listenerList := NewListenerList()
 	sessionList := NewSessionList()
 	reader := bufio.NewReader(os.Stdin)
@@ -96,7 +97,7 @@ func main() {
 				}
 			default:
 				{
-					fmt.Println("Invalid command. Use 'listen', 'session'")
+					fmt.Println("\nInvalid command. Use 'listen', 'session'\n")
 				}
 			}
 		}

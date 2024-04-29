@@ -1,9 +1,11 @@
 package main
 
 import (
-	"bufio"
+	//"crypto/sha256"
 	"fmt"
+	//"hash/sha256"
 	"net"
+	"time"
 )
 
 func NewListenerList() *ListenerList {
@@ -12,9 +14,9 @@ func NewListenerList() *ListenerList {
 	}
 }
 
-// handleClient handles the client connection
-func handleClient(conn net.Conn) {
-	defer conn.Close()
+// handleClient handles the client connection //Rewrite this. I dont know why it has to be a goroutine.
+func handleClient(ll *ListenerList, conn net.Conn, port string /*, listener net.Listener*/, sl *SessionList) {
+	//defer conn.Close()
 
 	// Read authentication message
 	auth := make([]byte, 32)
@@ -32,21 +34,25 @@ func handleClient(conn net.Conn) {
 	}
 
 	fmt.Println("Agent authenticated successfully!")
-	// Example: Echo back any message received
-	scanner := bufio.NewScanner(conn)
-	for scanner.Scan() {
-		message := scanner.Text()
-		fmt.Println("Received message:", message)
-		_, err := fmt.Fprintln(conn, "Echo:", message)
+	fmt.Println("Session Created")
+	//conn.Write([]byte("SessionOpen\n")) Will Use This late to get hostinfo and initial config
+	sl.registerSession(port, conn)
+	//listener.Close() //TCP connections once open do not require a listener. I am doing 1 listener and session per port for now.
+	ll.updateListenerStatus(port, "SESSION")
+	for {
+		//alive := sha256.Sum256([]byte("Areyoualive?!"))
+		_, err := conn.Write([]byte("AreYouAlive\n"))
 		if err != nil {
-			fmt.Println("Error writing to connection:", err)
+			conn.Close()
+			conn = nil
 			return
 		}
+		time.Sleep(600 * time.Second)
 	}
 }
 
 // registerListener registers a new listener
-func (ll *ListenerList) registerListener(port string) {
+func (ll *ListenerList) registerListener(port string, sl *SessionList) {
 	addr := ":" + port
 
 	// Resolve TCP address
@@ -90,7 +96,7 @@ func (ll *ListenerList) registerListener(port string) {
 				}
 
 				// Handle the connection
-				go handleClient(conn)
+				go handleClient(ll, conn, port /*, listener*/, sl)
 			}
 		}
 	}(ll.Stop) // Pass the stop channel to the goroutine
@@ -106,7 +112,15 @@ func (ll *ListenerList) displayListeners() {
 	}
 }
 
-// closeListeners closes all active listeners and associated connections
+func (ll *ListenerList) updateListenerStatus(targetPort string, status string /*, conn net.Conn*/) { //This is useless only 1 place uses it
+	current := ll.Head
+	for current.Port != targetPort {
+		current = current.Next
+	}
+	current.Status = status
+}
+
+// closeListeners closes all active listeners
 func (ll *ListenerList) closeListeners() {
 	// Close the stop channel to signal stop to all goroutines
 	close(ll.Stop)
@@ -115,13 +129,6 @@ func (ll *ListenerList) closeListeners() {
 	for current != nil {
 		fmt.Println("Closing listener on port:", current.Port)
 
-		// Close all associated connections first
-		for _, conn := range current.Conns {
-			conn.Close()
-		}
-		current.Conns = nil // Clear the connections list
-
-		// Close the listener
 		current.Listener.Close()
 
 		current = current.Next

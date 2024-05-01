@@ -16,7 +16,7 @@ From within the directory containing main.go
     go mod tidy
     go build
     sudo ./server
-If you are having trouble with the Bushido implant, feel free 
+If you are having trouble with the Bushido implant, feel free to use generateDebug with the same syntax as the generate command from withing the Demolitron console to create a debug version of the implant.
 
 
 ## TO-DO

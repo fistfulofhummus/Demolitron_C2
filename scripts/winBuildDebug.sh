@@ -2,4 +2,4 @@
 export GOOS=windows
 export GOARCH=amd64
 cd Bushido
-go build --ldflags -H=windowsgui
+go build -o clientDebug.exe

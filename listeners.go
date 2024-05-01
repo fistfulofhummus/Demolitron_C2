@@ -18,24 +18,9 @@ func NewListenerList() *ListenerList {
 
 // handleClient handles the client connection //Rewrite this. I dont know why it has to be a goroutine.
 func handleClient(ll *ListenerList, conn net.Conn, port string /*, listener net.Listener*/, sl *SessionList) {
-	//defer conn.Close()
-
-	// Read authentication message
-	auth := make([]byte, 32)
-	n, err := conn.Read(auth)
-	if err != nil {
-		fmt.Println("Error reading from connection:", err)
+	if !authSession(&conn) {
 		return
 	}
-	authString := string(auth[:n])
-
-	// Perform authentication
-	if authString != "i_L0V_y0U_Ju5t1n_P3t3R\n" {
-		fmt.Println("Authentication failed")
-		conn.Close()
-		return
-	}
-
 	fmt.Println("Agent authenticated successfully!")
 	fmt.Println("Session Created")
 	//conn.Write([]byte("SessionOpen\n")) Will Use This late to get hostinfo and initial config
@@ -48,6 +33,7 @@ func handleClient(ll *ListenerList, conn net.Conn, port string /*, listener net.
 		_, err := conn.Write([]byte("AreYouAlive\n"))
 		if err != nil {
 			conn.Close()
+			fmt.Println("The Client closed the remote connection.")
 			conn = nil
 			return
 		}

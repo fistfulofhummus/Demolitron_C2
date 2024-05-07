@@ -22,14 +22,15 @@ If you are having trouble with the Bushido implant, feel free to use generateDeb
 ## TO-DO
 
  - [x]  Add a menu a la meterpreter
- - [ ] Install Script that satisfies all the dependencies automatically
+ - [ ] Install Script that satisfies most of the dependencies automatically
  - [ ] Encrypt the tcp connections
  - [ ] Better error handling
- - [ ] Load and execute shellcode
+ - [x] Load and execute shellcode
+ - [ ] Inject Shellcode via Process Hollowing
  - [ ] Upload/Download
  - [ ] Persistence
  - [ ] Keylogging
  - [ ] RickRoll
 
 ## Notes:
-The project is under "active" development. I am just a monkey with a keyboard y all working on this when I have the time and learning as I go.
+The project is under "active" development. I am just a monkey with a keyboard. I am working on this when I have the time and learning as I go.

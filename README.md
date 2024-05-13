@@ -18,8 +18,6 @@ From within the directory containing main.go
     sudo ./server
 If you are having trouble with the Bushido implant, feel free to use generateDebug with the same syntax as the generate command from withing the Demolitron console to create a debug version of the implant.
 
-## Shellcode
-Concerning the usage of shellcode, it is best to create it with msfvenom or you can create it with Donut.
 
 ## TO-DO
 

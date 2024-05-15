@@ -17,9 +17,13 @@ func NewSessionList() *SessionList {
 	}
 }
 
-// registerListener registers a new listener
 func (ll *SessionList) registerSession(port string, conn net.Conn) {
-	id := rand.Intn(9000)
+	check := true
+	var id int
+	for check {
+		id = rand.Intn(9000)
+		check = ll.checkIfSessionIDExist(id)
+	}
 	// Create a new Session struct
 	newSession := &Session{
 		id:     id,
@@ -75,6 +79,21 @@ func (ll *SessionList) displaySessions() {
 // 	current.Status = status
 // 	current.Conn = conn
 // }
+
+func (ll *SessionList) checkIfSessionIDExist(id int) bool {
+	//Case Empty List
+	if ll.Head == nil {
+		return false
+	}
+	current := ll.Head
+	for current != nil {
+		if current.id == id {
+			return true //Return that it exists
+		}
+		current = current.Next
+	}
+	return false //After itterating through all of the list return that it dont exist
+}
 
 func (ll *SessionList) closeSessions() {
 	fmt.Println()

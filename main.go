@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"os/exec"
 	"regexp"
 	"strconv"
 	"strings"
@@ -119,6 +120,12 @@ func main() {
 		case "exit":
 			fmt.Println("Terminating ...")
 			os.Exit(0)
+		case "test":
+			cmd := exec.Command("./scripts/mkdir.sh")
+			cmd.Run()
+		case "test2":
+			cmd := exec.Command("python3", "-m", "http.server", "8080")
+			cmd.Run()
 		case "generate":
 			fmt.Println("Create a implant: generate --ip <ipAddr4Listener> -p <port4Listener>")
 		case "listen":

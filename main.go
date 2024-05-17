@@ -120,25 +120,25 @@ func main() {
 			fmt.Println("Terminating ...")
 			os.Exit(0)
 		case "generate":
-			fmt.Println("Create a implant: generate --ip <ipAddr4Listener> -p <port4Listener>")
+			fmt.Println("[?]Create a implant: generate --ip <ipAddr4Listener> -p <port4Listener>")
 		case "listen":
-			fmt.Println("Create a listener with: listen -p <port>")
-			fmt.Println("List active listeners: listen --ls")
-			fmt.Println("Close all listeners: listen --close")
+			fmt.Println("[?]Create a listener with: listen -p <port>")
+			fmt.Println("[?]List active listeners: listen --ls")
+			fmt.Println("[?]Close all listeners: listen --close")
 		case "listen --ls":
 			listenerList.displayListeners()
 		case "listen --close":
 			listenerList.closeListeners()
-			fmt.Println("All listeners closed.")
+			fmt.Println("[!]All listeners closed")
 		case "session":
-			fmt.Println("To activate a session: session --id <sessionID>")
-			fmt.Println("List active sessions: session --ls")
-			fmt.Println("Close all sessions: session --close")
+			fmt.Println("[?]To activate a session: session --id <sessionID>")
+			fmt.Println("[?]List active sessions: session --ls")
+			fmt.Println("[?]Close all sessions: session --close")
 		case "session --ls":
 			sessionList.displaySessions()
 		case "session --close":
 			sessionList.closeSessions()
-			fmt.Println("All sessions closed. Za3altneh ...")
+			fmt.Println("[!]All sessions closed. Za3altneh ...")
 		default:
 			// Check if the command matches "listen -p <port>"
 			regexListen := regexp.MustCompile(`^listen -p \d+$`)
@@ -163,7 +163,7 @@ func main() {
 				}
 			case matchGenerate != "":
 				{
-					breaching = logging.SRed("BeepBoop creating malware !")
+					breaching = logging.SRed("[!]BeepBoop creating malware !")
 					fmt.Println()
 					fmt.Println(breaching)
 					ip := strings.Split(command, " ")[2]
@@ -172,7 +172,7 @@ func main() {
 				}
 			case matchGenerateDbg != "":
 				{
-					breaching = logging.SRed("BeepBoop creating malware 4 Debugging !")
+					breaching = logging.SRed("[!]BeepBoop creating malware 4 Debugging !")
 					fmt.Println()
 					fmt.Println(breaching)
 					ip := strings.Split(command, " ")[2]
@@ -181,7 +181,7 @@ func main() {
 				}
 			default:
 				{
-					fmt.Println("\nInvalid command. Use 'listen', 'session', 'generate', 'exit'\n")
+					fmt.Println("\n[!]Invalid command. Use 'listen', 'session', 'generate', 'exit'\n")
 				}
 			}
 		}

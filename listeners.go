@@ -17,27 +17,21 @@ func NewListenerList() *ListenerList {
 }
 
 // handleClient handles the client connection //Rewrite this. I dont know why it has to be a goroutine.
-func handleClient(ll *ListenerList, conn net.Conn, port string /*, listener net.Listener*/, sl *SessionList) {
-	if !authSession(&conn) {
+func handleClient(ll *ListenerList, conn *net.Conn, port string /*, listener net.Listener*/, sl *SessionList) {
+	if !authSession(conn) {
 		return
 	}
-	fmt.Println("Agent authenticated successfully!")
-	fmt.Println("Session Created")
+	fmt.Println("[+]Agent authenticated successfully!")
+	fmt.Println("[+]Session Created")
 	//conn.Write([]byte("SessionOpen\n")) Will Use This late to get hostinfo and initial config
-	sl.registerSession(port, conn)
-	//listener.Close() //TCP connections once open do not require a listener. I am doing 1 listener and session per port for now.
+	sl.registerSession(port, *conn)
 	ll.updateListenerStatus(port, "SESSION")
 	//Checks if the session is still alive. Rewrite this in the sessions and not in the listeners section
+	//It is kinda broken atm
 	for {
 		//alive := sha256.Sum256([]byte("Areyoualive?!"))
-		_, err := conn.Write([]byte("AreYouAlive\n"))
-		if err != nil {
-			conn.Close()
-			fmt.Println("The Client closed the remote connection.")
-			conn = nil
-			return
-		}
-		time.Sleep(600 * time.Second)
+		authSession(conn)
+		time.Sleep(180 * time.Second)
 	}
 }
 
@@ -72,25 +66,6 @@ func (ll *ListenerList) registerListener(port string, sl *SessionList) {
 
 	fmt.Println("Listening on port:", addr)
 
-	// go func(stop <-chan struct{}) {
-	// 	for {
-	// 		select {
-	// 		case <-stop:
-	// 			listener.Close() //New
-	// 			return           // Stop accepting new connections and exit
-	// 		default:
-	// 			// Accept connection
-	// 			conn, err := listener.Accept()
-	// 			if err != nil {
-	// 				// Handle errors later
-	// 				continue
-	// 			}
-	// 			// Handle the connection
-	// 			handleClient(ll, conn, port /*, listener*/, sl)
-	// 		}
-	// 	}
-	// }(ll.Stop) // Doesnt help much. You can just terminate without getting into this headache.
-
 	//Simple and elegant
 	go func() {
 		for {
@@ -101,7 +76,8 @@ func (ll *ListenerList) registerListener(port string, sl *SessionList) {
 				continue
 			}
 			// Handle the connection
-			handleClient(ll, conn, port /*, listener*/, sl)
+			listener.Close() //TCP connections once open do not require a listener. I just close it. I am doing 1 listener and session per port for now.
+			handleClient(ll, &conn, port /*, listener*/, sl)
 		}
 	}()
 }

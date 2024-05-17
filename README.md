@@ -24,11 +24,9 @@ If you are having trouble with the Bushido implant, feel free to use generateDeb
  - [x]  Add a menu a la meterpreter
  - [ ] Install Script that satisfies most of the dependencies automatically
  - [ ] Encrypt the tcp connections
- - [x] Better error handling
+ - [ ] Better error handling
  - [x] Load and execute shellcode
  - [x] Inject Shellcode via Process Hollowing
- - [ ] Automatic Removal of Sessions once the agent dies
- - [ ] Close specific sessions and listeners
  - [ ] Upload/Download
  - [ ] Persistence
  - [ ] Keylogging

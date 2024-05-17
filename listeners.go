@@ -16,8 +16,8 @@ func NewListenerList() *ListenerList {
 	}
 }
 
-// handleClient handles the client connection //Rewrite this. I dont know why it has to be a goroutine.
-func handleClient(ll *ListenerList, conn *net.Conn, port string /*, listener net.Listener*/, sl *SessionList) {
+// handleClient handles the client connection
+func handleClient(ll *ListenerList, conn *net.Conn, port string, sl *SessionList) {
 	if !authSession(conn) {
 		return
 	}
@@ -27,7 +27,6 @@ func handleClient(ll *ListenerList, conn *net.Conn, port string /*, listener net
 	sl.registerSession(port, *conn)
 	ll.updateListenerStatus(port, "SESSION")
 	//Checks if the session is still alive. Rewrite this in the sessions and not in the listeners section
-	//It is kinda broken atm
 	for {
 		//alive := sha256.Sum256([]byte("Areyoualive?!"))
 		authSession(conn)
@@ -42,14 +41,14 @@ func (ll *ListenerList) registerListener(port string, sl *SessionList) {
 	// Resolve TCP address
 	tcpAddr, err := net.ResolveTCPAddr("tcp", addr)
 	if err != nil {
-		fmt.Println("Could not resolve TCP address:", err)
+		fmt.Println("[-]Could not resolve TCP address:", err)
 		return
 	}
 
 	// Listen on the specified port
 	listener, err := net.ListenTCP("tcp", tcpAddr)
 	if err != nil {
-		fmt.Println("Could not listen on port:", err)
+		fmt.Println("[-]Could not listen on port:", err)
 		return
 	}
 
@@ -64,7 +63,9 @@ func (ll *ListenerList) registerListener(port string, sl *SessionList) {
 	newListener.Next = ll.Head
 	ll.Head = newListener
 
-	fmt.Println("Listening on port:", addr)
+	fmt.Println()
+	fmt.Println("[+]Listening on port:", addr)
+	fmt.Println()
 
 	//Simple and elegant
 	go func() {
@@ -77,17 +78,17 @@ func (ll *ListenerList) registerListener(port string, sl *SessionList) {
 			}
 			// Handle the connection
 			listener.Close() //TCP connections once open do not require a listener. I just close it. I am doing 1 listener and session per port for now.
-			handleClient(ll, &conn, port /*, listener*/, sl)
+			handleClient(ll, &conn, port, sl)
 		}
 	}()
 }
 
 // displayListeners displays the active listeners
 func (ll *ListenerList) displayListeners() {
-	fmt.Println("\nActive Listeners:")
+	fmt.Println("\n[!]Active Listeners:")
 	current := ll.Head
 	for current != nil {
-		fmt.Println("Port:", current.Port, "- Status:", current.Status)
+		fmt.Println("[+]Port:", current.Port, "- Status:", current.Status)
 		current = current.Next
 	}
 }
@@ -107,7 +108,7 @@ func (ll *ListenerList) closeListeners() {
 	fmt.Println()
 	current := ll.Head
 	for current != nil {
-		fmt.Println("Closing listener on port:", current.Port)
+		fmt.Println("[!]Closing listener on port:", current.Port)
 
 		current.Listener.Close()
 

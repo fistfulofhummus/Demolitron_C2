@@ -8,12 +8,12 @@ import (
 )
 
 func generateImplant(c2Ip string, c2Port string) {
-	fmt.Println("Generating implant for " + c2Ip + ":" + c2Port)
+	fmt.Println("[!]Generating implant for " + c2Ip + ":" + c2Port)
 	unifiedAddress := "c2Address := \"" + c2Ip + ":" + c2Port + "\""
-	fmt.Println("TCP Address: " + unifiedAddress)
+	fmt.Println("[!]TCP Address: " + unifiedAddress)
 	content, err := os.ReadFile("Bushido/main.go")
 	if err != nil {
-		fmt.Println("Error Reading the Bushido/main.go")
+		fmt.Println("[-]Error Reading the Bushido/main.go")
 		return
 	}
 	strContent := string(content)
@@ -21,23 +21,23 @@ func generateImplant(c2Ip string, c2Port string) {
 	newContent := addressRegex.ReplaceAllString(strContent, unifiedAddress)
 	err = os.WriteFile("Bushido/main.go", []byte(newContent), 0777)
 	if err != nil {
-		fmt.Println("Error writing to file:", err)
+		fmt.Println("[-]Error writing to file:", err)
 		return
 	}
 	//Not too elegant and relies on the presence of a script that does it. Will do for now.
 	build := exec.Command("./scripts/winBuild.sh")
 	build.Run()
-	fmt.Println("Implant written to /Bushido/client.exe")
+	fmt.Println("[+]Implant written to /Bushido/client.exe")
 	fmt.Println()
 }
 
 func generateImplantDebug(c2Ip string, c2Port string) {
-	fmt.Println("Generating implant for " + c2Ip + ":" + c2Port)
+	fmt.Println("[!]Generating implant for " + c2Ip + ":" + c2Port)
 	unifiedAddress := "c2Address := \"" + c2Ip + ":" + c2Port + "\""
-	fmt.Println("TCP Address: " + unifiedAddress)
+	fmt.Println("[!]TCP Address: " + unifiedAddress)
 	content, err := os.ReadFile("Bushido/main.go")
 	if err != nil {
-		fmt.Println("Error Reading the Bushido/main.go")
+		fmt.Println("[-]Error Reading the Bushido/main.go")
 		return
 	}
 	strContent := string(content)
@@ -45,12 +45,12 @@ func generateImplantDebug(c2Ip string, c2Port string) {
 	newContent := addressRegex.ReplaceAllString(strContent, unifiedAddress)
 	err = os.WriteFile("Bushido/main.go", []byte(newContent), 0777)
 	if err != nil {
-		fmt.Println("Error writing to file:", err)
+		fmt.Println("[-]Error writing to file:", err)
 		return
 	}
 	//Not too elegant and relies on the presence of a script that does it. Will do for now.
 	build := exec.Command("./scripts/winBuildDebug.sh")
 	build.Run()
-	fmt.Println("Implant written to /Bushido/clientDebug.exe")
+	fmt.Println("[+]Implant written to /Bushido/clientDebug.exe")
 	fmt.Println()
 }

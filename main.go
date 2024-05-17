@@ -45,6 +45,7 @@ type SessionList struct {
 	Stop chan struct{}
 }
 
+// Just some theatrics
 func introSpinner(spinner_text string, spinnder_duration int, spinner_delay int) {
 	s := spinner.New(spinner.CharSets[32], time.Duration(spinner_delay)*time.Millisecond)
 	s.UpdateSpeed(400 * time.Millisecond)
@@ -93,23 +94,17 @@ func main() {
 	⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠛⠿⠿⠟⠻⠿⠿⠟⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀`)
 	fmt.Println(logo)
 	fmt.Println()
-	breaching := logging.SRed("Breaching ")
+	breaching := logging.SRed("---Breaching--- ")
 	fmt.Println()
 	introSpinner(breaching, 3000, 500)
 	listenerList := NewListenerList()
 	sessionList := NewSessionList()
 	reader := bufio.NewReader(os.Stdin)
-	// Impliment function to check if sessions are alive
-	// go func() {
-	// 	for {
-	// 		isAlive()
-	// 	}
-	// }()
 	for {
 		fmt.Print("DEMOLITRON >>> ")
 		command, err := reader.ReadString('\n')
 		if err != nil {
-			fmt.Println("Error reading input:", err)
+			fmt.Println("[-]Error reading input:", err)
 			continue
 		}
 
@@ -131,7 +126,7 @@ func main() {
 			listenerList.closeListeners()
 			fmt.Println("[!]All listeners closed")
 		case "session":
-			fmt.Println("[?]To activate a session: session --id <sessionID>")
+			fmt.Println("[?]To open a session: session --id <sessionID>")
 			fmt.Println("[?]List active sessions: session --ls")
 			fmt.Println("[?]Close all sessions: session --close")
 		case "session --ls":

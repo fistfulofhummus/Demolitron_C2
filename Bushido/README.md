@@ -13,9 +13,7 @@ So far the implant is only windows x64 compatible. Will probably write a Linux o
  - [x] ls
  - [x] pwd
  - [x] hostinfo
- - [x] Load and execute shellcode via CreateThread (Not perfect but works)
- - [x] Process Hollowing (Works quite nicely)
- - [ ] Threadless Injection
+ - [x] Load and execute shellcode (Not perfect but works)
  - [ ] Upload/Download
  - [ ] Persistence via service creation
  - [ ] Keylogging

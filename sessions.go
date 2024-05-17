@@ -43,10 +43,12 @@ func authSession(conn *net.Conn) bool {
 	n, err := (*conn).Read(auth)
 	if err != nil {
 		fmt.Println("[-]Error reading from connection:", err)
+		fmt.Println()
 		return false
 	}
 	if n <= 1 {
 		fmt.Println("[-]Error amount of data returned is less than 1")
+		fmt.Println()
 		return false
 	}
 	authString := string(auth[:n])
@@ -54,6 +56,7 @@ func authSession(conn *net.Conn) bool {
 	// Perform authentication
 	if authString != "i_L0V_y0U_Ju5t1n_P3t3R\n" {
 		fmt.Println("[-]Authentication failed")
+		fmt.Println()
 		(*conn).Close()
 		return false
 	}

@@ -27,6 +27,8 @@ If you are having trouble with the Bushido implant, feel free to use generateDeb
  - [x] Better error handling
  - [x] Load and execute shellcode
  - [x] Inject Shellcode via Process Hollowing
+ - [ ] Automatic Removal of Sessions once the agent dies
+ - [ ] Close specific sessions and listeners
  - [ ] Upload/Download
  - [ ] Persistence
  - [ ] Keylogging

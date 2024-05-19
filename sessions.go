@@ -146,9 +146,13 @@ func (ll *SessionList) closeSession(id int) { //Will delete as well
 		return
 	}
 	if current.id == id {
+		fmt.Println()
+		fmt.Println("[!]Session Found !")
+		fmt.Println("[+]Closing Session " + strconv.Itoa(current.id))
 		current.Conn.Close()
 		ll.Head = current.Next
-		//current = nil
+		fmt.Println("[+]Succesfully Ended the Session")
+		fmt.Println()
 		return
 	}
 	prev := current

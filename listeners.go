@@ -21,20 +21,23 @@ func handleClient(ll *ListenerList, conn *net.Conn, port string, sl *SessionList
 	if !authSession(conn) {
 		return
 	}
-	fmt.Println("[+]Agent authenticated successfully!")
-	fmt.Println("[+]Session Created")
-	//conn.Write([]byte("SessionOpen\n")) Will Use This late to get hostinfo and initial config
-	sl.registerSession(port, *conn)
+	fmt.Println("\n\n[+]Agent authenticated successfully !") //\n\n added at first for clarity
+	fmt.Print("[+]Session Created")                          //2 New lines exist after this fuck me
+	hostname, user := hostinfo(conn)                         //Get some hostinfo instantly without much headache
+	sl.registerSession(port, hostname, user, *conn)
 	ll.updateListenerStatus(port, "SESSION")
 	//Checks if the session is still alive. Rewrite this in the sessions and not in the listeners section
 	for {
 		//alive := sha256.Sum256([]byte("Areyoualive?!"))
-		authSession(conn)
-		time.Sleep(180 * time.Second)
+		if !authSession(conn) {
+			fmt.Println("[!]Cleaning Up") //Need a way of exiting the go routine. Will impliment something cooler later.
+			return
+		}
+		time.Sleep(30 * time.Second)
 	}
 }
 
-// registerListener registers a new listener
+// Registers a new listener
 func (ll *ListenerList) registerListener(port string, sl *SessionList) {
 	addr := ":" + port
 
@@ -83,7 +86,7 @@ func (ll *ListenerList) registerListener(port string, sl *SessionList) {
 	}()
 }
 
-// displayListeners displays the active listeners
+// Displays the active listeners
 func (ll *ListenerList) displayListeners() {
 	fmt.Println("\n[!]Active Listeners:")
 	current := ll.Head
@@ -91,8 +94,10 @@ func (ll *ListenerList) displayListeners() {
 		fmt.Println("[+]Port:", current.Port, "- Status:", current.Status)
 		current = current.Next
 	}
+	fmt.Println()
 }
 
+// Updates the status of the listener. Dont need it but I ll keep it
 func (ll *ListenerList) updateListenerStatus(targetPort string, status string /*, conn net.Conn*/) { //This is useless only 1 place uses it
 	current := ll.Head
 	for current.Port != targetPort {
@@ -103,17 +108,14 @@ func (ll *ListenerList) updateListenerStatus(targetPort string, status string /*
 
 // closeListeners closes all active listeners
 func (ll *ListenerList) closeListeners() {
-	// Close the stop channel to signal stop to all goroutines. Overkill but okay.
-	//close(ll.Stop)
 	fmt.Println()
 	current := ll.Head
 	for current != nil {
 		fmt.Println("[!]Closing listener on port:", current.Port)
-
 		current.Listener.Close()
-
 		current = current.Next
 	}
-	fmt.Println()
 	ll.Head = nil // Reset the listener list
+	fmt.Println("[+]All listeners closed")
+	fmt.Println()
 }

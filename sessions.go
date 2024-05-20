@@ -282,7 +282,7 @@ func openSession(id int, ll *SessionList) {
 				case "pwd":
 					pwd(&current.Conn)
 				case "threadless":
-					fmt.Println("\n[?]Usage: threadless <pathToShellcodeLocal> <RemoteProcessName>")
+					fmt.Println("\n[?]Usage: threadless <pathToShellcodeLocal> <RemoteProcessName>\n")
 				case "hollow":
 					fmt.Println("\n[?]Usage: hollow <pathToExeLocal> <\"path2ExeRemote\">")
 					fmt.Println("[?]Windows paths must have double backslashes as such: \"C:\\\\Program Files\\\\Internet Explorer\\\\iexplore.exe\"\n")

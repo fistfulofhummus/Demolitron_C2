@@ -14,6 +14,7 @@ So far the implant is only windows x64 compatible. Will probably write a Linux o
  - [x] pwd
  - [x] hostinfo
  - [x] Load and execute shellcode (Not perfect but works)
+ - [x] Threadless Injection (experimental)
  - [ ] Replace fmt with an actual logging library
  - [ ] Upload/Download
  - [ ] Persistence via service creation

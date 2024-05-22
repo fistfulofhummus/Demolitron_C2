@@ -33,4 +33,4 @@ If you are having trouble with the Bushido implant, feel free to use generateDeb
 
 ## Notes:
 The project is under "active" development. I am just a monkey with a keyboard. I am working on this when I have the time and learning as I go.
-There is also a theoretical hardlimit to how many agents you can have deployed since it relys on IDs generated from 1 to 9000. This can be solved by trying to enumerate the host and get the host id as well and have it stored in the session struct.
+There is also a theoretical hardlimit to how many agents you can have deployed since it relys on IDs generated. If the cap is reached (realistically it shouldn't) the server will get stuck in infinite loop trying to generate a unique ID for the implant. This can be solved by trying to enumerate the host and get the host id as well and have it stored in the session struct and using hostname + id as the true unique identifier.

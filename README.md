@@ -8,7 +8,8 @@ Tested on Kali Linux & Debian 12.
 Before building the implant don't forget to edit the code and insert your TCP listner address.
 
  1. Go
- 2. chmod +x on all the scripts in the scripts directory
+ 2. Python
+ 3. chmod +x on all the scripts in the scripts directory
 
 ## Usage
 From within the directory containing main.go

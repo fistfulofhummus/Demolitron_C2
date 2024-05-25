@@ -9,6 +9,8 @@ import (
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/D3Ext/maldev/logging"
 )
 
 // Server-Sides needs to handle errors better
@@ -16,38 +18,42 @@ func shell(conn *net.Conn) { //FIX CD AND PWD HERE TOO
 	reader := bufio.NewReader(os.Stdin)
 L: //Labeled the for loop with L if i need to break it from switch. Faster than if statements. Works.
 	for {
-		fmt.Print("PS > ")
+		fmt.Print(logging.SBlue("PS > "))
 		command, err := reader.ReadString('\n')
 		if err != nil {
 			fmt.Println("[-]Error reading input:", err)
 			continue
 		}
+		command = strings.TrimSpace(command)
 		cdRegex := regexp.MustCompile(`cd .+`)
 		cdRegexComp := cdRegex.FindString(command)
 		if cdRegexComp != "" {
 			dir2Go := strings.Split(command, " ")[1]
 			cd(conn, dir2Go)
+			continue
 		}
 		switch command {
-		case "\n":
+		case "":
 			continue
-		case "cls\n":
+		case "cls":
 			continue
-		case "bg\n":
+		case "bg":
 			break L
-		case "exit\n":
+		case "exit":
 			break L
-		case "pwd\n":
+		case "pwd":
 			pwd(conn)
 		default:
 			(*conn).Write([]byte(command))
 			request := make([]byte, 9000)
 			read_len, err := (*conn).Read(request)
 			if read_len == 0 {
-				fmt.Println("Read Length is 0")
+				fmt.Println("[-]Read Length is 0")
+				//(*conn).Close()
 				return
 			}
 			if err != nil {
+				//(*conn).Close()
 				return
 			}
 			reply := string(request[:read_len])

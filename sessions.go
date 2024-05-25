@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/D3Ext/maldev/logging"
 )
 
 func NewSessionList() *SessionList {
@@ -197,13 +199,13 @@ func openSession(id int, ll *SessionList) {
 			reader := bufio.NewReader(os.Stdin)
 
 			for {
-				fmt.Print("BU$H1D0-1 >> ")
+				fmt.Print(logging.SGreen("BU$H1D0-1 >> "))
 				command, err := reader.ReadString('\n')
 				if err != nil {
 					fmt.Println("[-]Error reading input:", err)
 					continue
 				} //Check how to make this prettier
-				command = strings.TrimSpace(command)
+				command = strings.TrimSpace(command) //This removes leading and trailing whitespaces. It is very important. If something should work but isn't, this could be the reason
 				//playRegex := regexp.MustCompile(`play .+`)
 				//playMatch := playRegex.FindString(command)
 				loadRegex := regexp.MustCompile(`load .+`)

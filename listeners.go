@@ -3,6 +3,7 @@ package main
 import (
 	//"crypto/sha256"
 	"fmt"
+	"strconv"
 	"time"
 
 	//"hash/sha256"
@@ -24,13 +25,15 @@ func handleClient(ll *ListenerList, conn *net.Conn, port string, sl *SessionList
 	fmt.Println("\n\n[+]Agent authenticated successfully !") //\n\n added at first for clarity
 	fmt.Print("[+]Session Created")                          //2 New lines exist after this fuck me
 	hostname, user := hostinfo(conn)                         //Get some hostinfo instantly without much headache
-	sl.registerSession(port, hostname, user, *conn)
+	currentSessionID := sl.registerSession(port, hostname, user, *conn)
+	fmt.Println("[!]Sesssion ID: " + strconv.Itoa(currentSessionID))
 	ll.updateListenerStatus(port, "SESSION")
 	//Checks if the session is still alive. Rewrite this in the sessions and not in the listeners section
 	for {
 		//alive := sha256.Sum256([]byte("Areyoualive?!"))
 		if !authSession(conn) {
-			fmt.Println("[!]Cleaning Up") //Need a way of exiting the go routine. Will impliment something cooler later.
+			fmt.Println("[!]Cleaning Up")     //Need a way of exiting the go routine. Will impliment something cooler later.
+			sl.closeSession(currentSessionID) //We can use the updateSession functions instead if we want to keep a record of the dead sessions. There is a status field in the session struct after all
 			return
 		}
 		time.Sleep(30 * time.Second)

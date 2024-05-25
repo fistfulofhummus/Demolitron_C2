@@ -18,9 +18,9 @@ func NewSessionList() *SessionList {
 	}
 }
 
-func (ll *SessionList) registerSession(port string, hostname string, user string, conn net.Conn) {
+func (ll *SessionList) registerSession(port string, hostname string, user string, conn net.Conn) int {
 	check := true
-	var id int
+	id := -1
 	for check {
 		id = rand.Intn(9000)
 		check = ll.checkIfSessionIDExist(id)
@@ -37,6 +37,7 @@ func (ll *SessionList) registerSession(port string, hostname string, user string
 	// Add to the head of the linked list
 	newSession.Next = ll.Head
 	ll.Head = newSession
+	return id
 }
 
 func authSession(conn *net.Conn) bool {

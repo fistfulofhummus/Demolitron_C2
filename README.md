@@ -1,15 +1,13 @@
 
 # Demolitron_C2
 A C2 inspired by sliver and metasploit. Post exploitation only.
-Tested on Kali Linux & Debian 12.
   
 
 ## Requirements
 Before building the implant don't forget to edit the code and insert your TCP listner address.
 
  1. Go
- 2. Python
- 3. chmod +x on all the scripts in the scripts directory
+ 2. chmod +x on all the scripts in the scripts directory
 
 ## Usage
 From within the directory containing main.go
@@ -27,12 +25,13 @@ If you are having trouble with the Bushido implant, feel free to use generateDeb
  - [ ] Install Script that satisfies most of the dependencies automatically
  - [ ] Encrypt the tcp connections
  - [ ] Better error handling
- - [x] Shellcode Loading & Injection Techniques
+ - [x] Load and execute shellcode
+ - [x] Inject Shellcode via Process Hollowing
  - [ ] Upload/Download
  - [ ] Persistence
  - [ ] Keylogging
+ - [ ] RickRoll
 
 ## Notes:
 The project is under "active" development. I am just a monkey with a keyboard. I am working on this when I have the time and learning as I go.
-The first time you build an implant could take some time while go fetches any required packages and dependancies.
-There is also a theoretical hardlimit to how many agents you can have deployed since it relys on IDs generated. If the cap is reached (realistically it shouldn't) the server will get stuck in infinite loop trying to generate a unique ID for the implant. This can be solved by trying to enumerate the host and get the host id as well and have it stored in the session struct and using hostname + id as the true unique identifier.
+There is also a theoretical hardlimit to how many agents you can have deployed since it relys on IDs generated from 1 to 9000. This can be solved by trying to enumerate the host and get the host id as well and have it stored in the session struct.

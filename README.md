@@ -1,4 +1,6 @@
 
+![DemolitronIMG1](https://github.com/fistfulofhummus/Demolitron_C2/assets/98347396/27dfe6da-248d-43e9-bd2b-8903964f8787)
+
 # Demolitron_C2
 A C2 inspired by sliver and metasploit. Post exploitation only.
   

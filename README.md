@@ -31,7 +31,7 @@ If you are having trouble with the Bushido implant, feel free to use generateDeb
  - [ ] Upload/Download
  - [ ] Persistence
  - [ ] Keylogging
- - [ ] RickRoll
+ - [x] RickRoll
 
 ## Notes:
 The project is under "active" development. I am just a monkey with a keyboard. I am working on this when I have the time and learning as I go.

@@ -1,14 +1,13 @@
 
-![DemolitronIMG1](https://github.com/fistfulofhummus/Demolitron_C2/assets/98347396/27dfe6da-248d-43e9-bd2b-8903964f8787)
-
 # Demolitron_C2
 A C2 inspired by sliver and metasploit. Post exploitation only.
   
 
 ## Requirements
+Before building the implant don't forget to edit the code and insert your TCP listner address.
+
  1. Go
  2. chmod +x on all the scripts in the scripts directory
- 3. Python
 
 ## Usage
 From within the directory containing main.go
@@ -27,11 +26,12 @@ If you are having trouble with the Bushido implant, feel free to use generateDeb
  - [ ] Encrypt the tcp connections
  - [ ] Better error handling
  - [x] Load and execute shellcode
- - [x] Inject Shellcode via Process Hollowing
+ - [x] Inject Shellcode via Process Hollowing //Removed since kinda pointless having multiple techniques
+ - [x] Inject with CreateRemoteThread
  - [ ] Upload/Download
  - [ ] Persistence
  - [ ] Keylogging
- - [x] RickRoll
+ - [ ] RickRoll
 
 ## Notes:
 The project is under "active" development. I am just a monkey with a keyboard. I am working on this when I have the time and learning as I go.

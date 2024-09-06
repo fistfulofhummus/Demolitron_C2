@@ -11,6 +11,7 @@ func remoteThread(shellcode []byte, pid int) {
 	pid1 := uint32(1112)
 	fmt.Println(pid1)
 	fmt.Println(pid)
+	fmt.Println(uint32(pid))
 	pHandle, err := windows.OpenProcess(winsyscall.PROCESS_ALL_ACCESS, false, uint32(pid))
 	if err != nil {
 		panic(err)

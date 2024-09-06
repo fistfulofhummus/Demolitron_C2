@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/bin/zsh
 export GOOS=windows
 export GOARCH=amd64
 export CGO_ENABLED=1
 cd Bushido
-go build -o clientDebug.exe 
+go build -o clientDebug.exe

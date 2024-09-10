@@ -25,9 +25,10 @@ If you are having trouble with the Bushido implant, feel free to use generateDeb
  - [ ] Install Script that satisfies most of the dependencies automatically
  - [ ] Encrypt the tcp connections
  - [ ] Better error handling
- - [x] Load and execute shellcode
+ - [x] Load and execute shellcode with CreateThread
  - [x] Inject Shellcode via Process Hollowing //Removed since kinda pointless having multiple techniques
- - [x] Inject with CreateRemoteThread
+ - [x] Inject Shellcode with CreateRemoteThread
+ - [ ] A cross platform builder script
  - [ ] Upload/Download
  - [ ] Persistence
  - [ ] Keylogging

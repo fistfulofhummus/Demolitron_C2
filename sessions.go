@@ -266,7 +266,7 @@ func openSession(id int, ll *SessionList) {
 				// 	fmt.Println("[?]Windows paths must have double backslashes as such: \"C:\\\\Program Files\\\\Internet Explorer\\\\iexplore.exe\"\n")
 				case "help":
 					fmt.Println()
-					fmt.Println("[!]Below is a list of useful commands:\n[+]bg: will background the current session")
+					fmt.Println("[!]Below is a list of useful commands:\n   bg: will background the current session")
 					fmt.Println("   bsod: Crashes the host by attempting to kill svchost (Admin+)")
 					fmt.Println("   cd: Changes the local directory to the specified one eg cd ../Pictures")
 					fmt.Println("   dir: Alias for ls")

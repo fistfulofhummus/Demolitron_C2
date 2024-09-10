@@ -29,7 +29,7 @@ If you are having trouble with the Bushido implant, feel free to use generateDeb
  - [x] Inject Shellcode via Process Hollowing //Removed since kinda pointless having multiple techniques
  - [x] Inject Shellcode with CreateRemoteThread
  - [ ] A cross platform builder script
- - [ ] Upload/Download
+ - [ ] Upload/Download (File transfer via RSync or SCP perhaps ?)
  - [ ] Persistence
  - [ ] Keylogging
  - [ ] RickRoll

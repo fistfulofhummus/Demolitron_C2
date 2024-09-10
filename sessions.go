@@ -267,18 +267,17 @@ func openSession(id int, ll *SessionList) {
 				case "help":
 					fmt.Println()
 					fmt.Println("[!]Below is a list of useful commands:\n[+]bg: will background the current session")
-					fmt.Println("   bsod: will crash the current host by attempting to kill svchost (Admin+)")
+					fmt.Println("   bsod: Crashes the host by attempting to kill svchost (Admin+)")
 					fmt.Println("   cd: Changes the local directory to the specified one eg cd ../Pictures")
 					fmt.Println("   dir: Alias for ls")
 					fmt.Println("   exit: Alias for bg")
 					fmt.Println("   hostinfo: Displays information pertaining to the current house")
-					fmt.Println("   inject: Will attempt to write and execute shellcode into a remote process")
-					fmt.Println("   load: Will attempt to write and execute shellcode into the shell's process")
+					fmt.Println("   inject: Attempts to write and execute shellcode into a remote process")
+					fmt.Println("   load: Attempts to write and execute shellcode into the shell's process")
 					fmt.Println("   ls: Lists the contents of current directory. Will upgrade in future to be able to do remote ones too")
 					fmt.Println("   pwd: Prints the path to the implant")
 					fmt.Println("   shell: Drops down into a live powershell session")
 					fmt.Println()
-
 				default:
 					fmt.Println("\n[!]Invalid input\n")
 				}

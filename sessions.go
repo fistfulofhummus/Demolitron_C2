@@ -215,18 +215,21 @@ func openSession(id int, ll *SessionList) {
 				if cdMatch != "" {
 					dir2go := strings.Split(command, " ")[1]
 					cd(&current.Conn, dir2go)
+					continue
 				}
 
 				if loadMatch != "" {
 					binFilePathLocal := strings.Split(command, " ")[1]
 					load(&current.Conn, binFilePathLocal)
 					fmt.Println()
+					continue
 				}
 				if remoteThreadMatch != "" {
 					binFilePathLocal := strings.Split(command, " ")[1]
 					targetPID := strings.Split(command, " ")[2]
 					remoteThread(&current.Conn, binFilePathLocal, targetPID)
 					fmt.Println()
+					continue
 				}
 				switch command { //All of the functions called below will be found under bushido.go
 				case "shell":

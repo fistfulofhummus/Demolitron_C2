@@ -1,7 +1,8 @@
 
 # Demolitron_C2
 A C2 inspired by sliver and metasploit. Post exploitation only.
-  
+
+![image](https://github.com/user-attachments/assets/279f25bf-63d1-4db5-a734-7cea95a435bd)
 
 ## Requirements
 Before building the implant don't forget to edit the code and insert your TCP listner address.

@@ -2,7 +2,9 @@ package cmd
 
 import (
 	"bufio"
+	"encoding/binary"
 	"fmt"
+	"io"
 	"net"
 	"os"
 	"os/exec"
@@ -126,24 +128,24 @@ func bsod(conn *net.Conn) bool { //Works but implant should be running as admin
 // }
 
 // V1
-func ls(conn *net.Conn) { //Limit the size of the data sent over the client because it desyncs everything on server end.
-	(*conn).Write([]byte("ls\n"))
-	request := make([]byte, 99999999) //This looks reasonable. 99MB maybe a bit too much but this should be more than fine for ridiculously large dirs
-	read_len, err := (*conn).Read(request)
-	if read_len == 0 {
-		(*conn).Close()
-		fmt.Println("Error")
-		return
-	}
-	if err != nil {
-		(*conn).Close()
-		fmt.Println("Error")
-		return
-	}
-	reply := string(request[:read_len])
-	fmt.Println("\n" + "	SIZE(KB)		" + "MODE		" + "	NAME" + "\n" +
-		"	--------		" + "-----		" + "	-----" + "\n" + reply + "\n")
-}
+// func ls(conn *net.Conn) { //Limit the size of the data sent over the client because it desyncs everything on server end.
+// 	(*conn).Write([]byte("ls\n"))
+// 	request := make([]byte, 99999999) //This looks reasonable. 99MB maybe a bit too much but this should be more than fine for ridiculously large dirs
+// 	read_len, err := (*conn).Read(request)
+// 	if read_len == 0 {
+// 		(*conn).Close()
+// 		fmt.Println("Error")
+// 		return
+// 	}
+// 	if err != nil {
+// 		(*conn).Close()
+// 		fmt.Println("Error")
+// 		return
+// 	}
+// 	reply := string(request[:read_len])
+// 	fmt.Println("\n" + "	SIZE(KB)		" + "MODE		" + "	NAME" + "\n" +
+// 		"	--------		" + "-----		" + "	-----" + "\n" + reply + "\n")
+// }
 
 // V2
 // func ls(conn *net.Conn) {
@@ -216,6 +218,45 @@ func ls(conn *net.Conn) { //Limit the size of the data sent over the client beca
 // 	fmt.Println("\n" + "	SIZE(KB)		" + "MODE		" + "	NAME" + "\n" +
 // 		"	--------		" + "-----		" + "	-----" + "\n" + fullListing + "\n")
 // }
+
+// v4. It works. Review this thanks to GPT
+func ls(conn *net.Conn) {
+	(*conn).Write([]byte("ls\n"))
+
+	// Read the length prefix (4 bytes)
+	lengthBytes := make([]byte, 4)
+	_, err := io.ReadFull(*conn, lengthBytes) // Ensure we read exactly 4 bytes
+	if err != nil {
+		fmt.Println("Error reading data length:", err)
+		(*conn).Close()
+		return
+	}
+
+	// Decode the length of the incoming data
+	totalLength := binary.BigEndian.Uint32(lengthBytes)
+	fmt.Printf("Expecting %d bytes of data\n", totalLength)
+
+	// Read the data in chunks
+	data := make([]byte, totalLength)
+	bytesRead := 0
+
+	for bytesRead < int(totalLength) {
+		n, err := (*conn).Read(data[bytesRead:])
+		if err != nil {
+			fmt.Println("Error reading data:", err)
+			(*conn).Close()
+			return
+		}
+		bytesRead += n
+	}
+
+	// Print the received directory listing
+	fmt.Println("\n	SIZE(KB)		MODE		NAME")
+	fmt.Println("	--------		-----		-----")
+	fmt.Println(string(data))
+
+	fmt.Printf("Received %d bytes successfully\n", bytesRead)
+}
 
 func cd(conn *net.Conn, dir2go string) {
 	//fmt.Println(dir2go)

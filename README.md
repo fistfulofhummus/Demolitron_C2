@@ -39,4 +39,4 @@ This will have the server notify you when the server is started and will notify 
 
 ## Notes:
 The project is under "active" development. I am just a monkey with a keyboard. I am working on this when I have the time and learning as I go.
-There is also a theoretical hardlimit to how many agents you can have deployed since it relys on IDs generated from 1 to 9000. You can modify this if you want to raise the limit of the amount of agents you expect to connect to the server. The first time a implant is compiled, it could take a while if you are missing a few go packages. Afterwards implant generation should be quick.
+There is also a theoretical hardlimit to how many agents you can have deployed since it relys on IDs generated from 1 to 9000. You can modify this if you want to raise the limit of the amount of agents you expect to connect to the server. The first time a implant is compiled, it could take a while if you are missing a few go packages. Afterwards implant generation should be quick. RUN THE SERVER BINARY FROM WITHIN THE PROJECT DIRECTORY OTHERWISE IT WON'T BE ABLE TO BUILD THE IMPLANT OR START HTTP SERVERS AND SUCH.

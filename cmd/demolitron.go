@@ -120,22 +120,22 @@ func InitServer(notifURL string) {
 		case "": //Empty string means the user just hit enter
 			continue
 		case "donut":
-			fmt.Println("[?]Turn an exe into shellcode: donut <path2exe> <outputPath>")
+			fmt.Println("\n[?]Turn an exe into shellcode: donut <path2exe> <outputPath>\n")
 		case "generate":
-			fmt.Println("[?]Create a implant: generate --ip <ipAddr4Listener> -p <port4Listener>")
+			fmt.Println("\n[?]Create a implant: generate --ip <ipAddr4Listener> -p <port4Listener>\n")
 		case "listen":
-			fmt.Println("[?]Create a listener with: listen -p <port>")
+			fmt.Println("\n[?]Create a listener with: listen -p <port>")
 			fmt.Println("[?]List active listeners: listen --ls")
-			fmt.Println("[?]Close all listeners: listen --close")
+			fmt.Println("[?]Close all listeners: listen --close\n")
 		case "listen --ls":
 			listenerList.displayListeners()
 		case "listen --close":
 			listenerList.closeListeners()
 		case "session":
-			fmt.Println("[?]Open a session: session --id <sessionID>")
+			fmt.Println("\n[?]Open a session: session --id <sessionID>")
 			fmt.Println("[?]List active sessions: session --ls")
 			fmt.Println("[?]Close a specific session: session --close <sessionID>")
-			fmt.Println("[?]Close all sessions: session --closeAll")
+			fmt.Println("[?]Close all sessions: session --closeAll\n")
 		case "session --ls":
 			sessionList.displaySessions()
 		case "session --closeAll":

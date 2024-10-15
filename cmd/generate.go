@@ -8,9 +8,9 @@ import (
 )
 
 func generateImplant(c2Ip string, c2Port string) {
-	fmt.Println("[!]Generating implant for " + c2Ip + ":" + c2Port)
+	fmt.Println("\n[!]Generating implant for " + c2Ip + ":" + c2Port)
 	unifiedAddress := "c2Address := \"" + c2Ip + ":" + c2Port + "\""
-	fmt.Println("[!]TCP Address: " + unifiedAddress)
+	//fmt.Println("[!]TCP Address: " + unifiedAddress) //Debug Purposes
 	content, err := os.ReadFile("cmd/Bushido/main.go")
 	if err != nil {
 		fmt.Println("[-]Error Reading the cmd/Bushido/main.go")
@@ -32,9 +32,9 @@ func generateImplant(c2Ip string, c2Port string) {
 }
 
 func generateImplantDebug(c2Ip string, c2Port string) {
-	fmt.Println("[!]Generating implant for " + c2Ip + ":" + c2Port)
+	fmt.Println("\n[!]Generating implant for " + c2Ip + ":" + c2Port)
 	unifiedAddress := "c2Address := \"" + c2Ip + ":" + c2Port + "\""
-	fmt.Println("[!]TCP Address: " + unifiedAddress)
+	//fmt.Println("[!]TCP Address: " + unifiedAddress) //Debug Purposes
 	content, err := os.ReadFile("cmd/Bushido/main.go")
 	if err != nil {
 		fmt.Println("[-]Error Reading the cmd/Bushido/main.go")

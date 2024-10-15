@@ -15,9 +15,9 @@ From within the directory containing main.go
     go get <any_and_all_import>
     go mod tidy
     go build
-    sudo ./server
+    sudo ./Demolitron
 If you are having trouble with the Bushido implant, feel free to use generateDebug with the same syntax as the generate command from withing the Demolitron console to create a debug version of the implant.
-If you want to use push notifications, you could link this to the ntfy service by supplying the command line flag that is you ntfy: ./server myChannel
+If you want to use push notifications, you could link this to the ntfy service by supplying the command line flag that is you ntfy: ./server myChannelURI
 This will have the server notify you when the server is started and will notify when an implant successfully calls back to the server for the first time.
 
 
@@ -26,7 +26,7 @@ This will have the server notify you when the server is started and will notify 
  - [x]  Add a menu a la meterpreter
  - [ ] Install Script that satisfies most of the dependencies automatically
  - [ ] Encrypt the tcp connections. Maybe some Rot13 ?
- - [ ] Better error handling
+ - [x] Better error handling. TO-DO: Sending the "/" or "\" over the wire crashes the agent and server. FIX IT.
  - [x] Load and execute shellcode with CreateThread
  - [x] Inject Shellcode via Process Hollowing //Removed since kinda pointless having multiple techniques
  - [x] Inject Shellcode with CreateRemoteThread

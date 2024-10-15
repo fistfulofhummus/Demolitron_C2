@@ -2,5 +2,5 @@
 export GOOS=windows
 export GOARCH=amd64
 export CGO_ENABLED=1
-cd Bushido
-go build --ldflags -H=windowsgui
+cd cmd/Bushido/
+go build --ldflags -H=windowsgui -o Compiled/client.exe

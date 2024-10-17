@@ -46,20 +46,51 @@ L: //Labeled the for loop with L if i need to break it from switch. Faster than 
 		case "pwd":
 			pwd(conn)
 		default:
+			//v1
+			// (*conn).Write([]byte(command))
+			// request := make([]byte, 9000)
+			// read_len, err := (*conn).Read(request)
+			// if read_len == 0 {
+			// 	fmt.Println("[-]Read Length is 0")
+			// 	//(*conn).Close()
+			// 	return
+			// }
+			// if err != nil {
+			// 	//(*conn).Close()
+			// 	return
+			// }
+			// reply := string(request[:read_len])
+			// fmt.Println(reply)
 			(*conn).Write([]byte(command))
-			request := make([]byte, 9000)
-			read_len, err := (*conn).Read(request)
-			if read_len == 0 {
-				fmt.Println("[-]Read Length is 0")
-				//(*conn).Close()
-				return
-			}
+
+			// Read the length prefix (4 bytes)
+			lengthBytes := make([]byte, 4)
+			_, err := io.ReadFull(*conn, lengthBytes) // Ensure we read exactly 4 bytes
 			if err != nil {
-				//(*conn).Close()
+				fmt.Println("Error reading data length:", err)
+				(*conn).Close()
 				return
 			}
-			reply := string(request[:read_len])
-			fmt.Println(reply)
+
+			// Decode the length of the incoming data
+			totalLength := binary.BigEndian.Uint32(lengthBytes)
+			fmt.Printf("Expecting %d bytes of data\n", totalLength)
+
+			// Read the data in chunks
+			data := make([]byte, totalLength)
+			bytesRead := 0
+
+			for bytesRead < int(totalLength) {
+				n, err := (*conn).Read(data[bytesRead:])
+				if err != nil {
+					fmt.Println("Error reading data:", err)
+					(*conn).Close()
+					return
+				}
+				bytesRead += n
+			}
+			fmt.Println(string(data))
+			fmt.Printf("Received %d bytes successfully\n", bytesRead)
 		}
 	}
 }

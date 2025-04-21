@@ -1,7 +1,6 @@
 module client
 
-go 1.21.6
-
+go 1.23
 require (
 	github.com/D3Ext/maldev v0.1.4
 	github.com/nodauf/go-windows v0.0.0-20220718153614-632c21cbbab5

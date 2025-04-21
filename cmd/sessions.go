@@ -35,6 +35,7 @@ func (ll *SessionList) registerSession(port string, hostname string, user string
 		Hostname: hostname,
 		User:     user,
 		Conn:     conn,
+		StopChan: make(chan struct{}),
 	}
 	// Add to the head of the linked list
 	newSession.Next = ll.Head
@@ -106,6 +107,17 @@ func (ll *SessionList) checkIfSessionIDExist(id int) bool {
 	return false //After itterating through all of the list return that it dont exist
 }
 
+func (sl *SessionList) getSessionByID(id int) *Session {
+	current := sl.Head
+	for current != nil {
+		if current.id == id {
+			return current
+		}
+		current = current.Next
+	}
+	return nil
+}
+
 func (ll *SessionList) displaySessionInfo(id int) {
 	if ll.Head == nil {
 		return
@@ -134,6 +146,7 @@ func (ll *SessionList) closeAllSessions() {
 	current := ll.Head
 	for current != nil {
 		fmt.Println("[-]Unit on", current.id, "lost")
+		close(current.StopChan) // <-- Signal the loop to stop
 		current.Conn.Close()
 		current.Conn = nil // Clear the connections list
 
@@ -143,7 +156,7 @@ func (ll *SessionList) closeAllSessions() {
 	ll.Head = nil // Reset the listener list
 }
 
-func (ll *SessionList) closeSession(id int) { //Will delete as well
+func (ll *SessionList) closeSession(id int) {
 	current := ll.Head
 	if current == nil {
 		return
@@ -152,9 +165,10 @@ func (ll *SessionList) closeSession(id int) { //Will delete as well
 		fmt.Println()
 		fmt.Println("[!]Session Found !")
 		fmt.Println("[+]Closing Session " + strconv.Itoa(current.id))
+		close(current.StopChan) // <-- Signal the loop to stop
 		current.Conn.Close()
 		ll.Head = current.Next
-		fmt.Println("[+]Succesfully Ended the Session")
+		fmt.Println("[+]Successfully Ended the Session")
 		fmt.Println()
 		return
 	}
@@ -165,10 +179,10 @@ func (ll *SessionList) closeSession(id int) { //Will delete as well
 			fmt.Println()
 			fmt.Println("[!]Session Found !")
 			fmt.Println("[+]Closing Session " + strconv.Itoa(current.id))
+			close(current.StopChan) // <-- Signal the loop to stop
 			current.Conn.Close()
 			prev.Next = current.Next
-			//current = nil
-			fmt.Println("[+]Succesfully Ended the Session")
+			fmt.Println("[+]Successfully Ended the Session")
 			fmt.Println()
 			return
 		}
@@ -192,9 +206,9 @@ func openSession(id int, ll *SessionList) {
 		if current.id == id {
 			fmt.Println("\n[!]Session Found !")
 			fmt.Println("[!]Connecting ...")
-			if !authSession(&current.Conn) {
-				return
-			}
+			//if !authSession(&current.Conn) {
+			//	return
+			//}
 			fmt.Println("[+]BUSHIDO Shell Open ...\n")
 			reader := bufio.NewReader(os.Stdin)
 

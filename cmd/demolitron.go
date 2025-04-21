@@ -40,6 +40,7 @@ type Session struct {
 	Hostname string
 	User     string
 	Next     *Session
+	StopChan chan struct{}
 }
 
 // ListenerList represents a linked list of listeners

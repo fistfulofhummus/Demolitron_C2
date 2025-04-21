@@ -1,6 +1,6 @@
 module Demolitron
 
-go 1.23.2
+go 1.23
 
 require (
 	github.com/D3Ext/maldev v0.1.4

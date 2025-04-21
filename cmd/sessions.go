@@ -46,7 +46,7 @@ func (ll *SessionList) registerSession(port string, hostname string, user string
 func authSession(conn *net.Conn) bool {
 	auth := make([]byte, 32)
 	(*conn).SetReadDeadline(time.Now().Add(60 * time.Second))
-	(*conn).Write([]byte("AreYouAlive\n"))
+	(*conn).Write([]byte("WhoAreYou\n"))
 	n, err := (*conn).Read(auth)
 	if err != nil {
 		fmt.Println() //Put this here for aesthetic reasons. Will use a go routine kill signal later to exit from handleclient proper

@@ -26,31 +26,43 @@ func NewListenerList() *ListenerList {
 	}
 }
 
-// handleClient handles the client connection
-// func handleClient(ll *ListenerList, conn *net.Conn, port string, sl *SessionList, notifURL string) {
-// 	if !authSession(conn) {
-// 		return
-// 	}
-// 	fmt.Println("\n\n[+]Agent authenticated successfully !") //\n\n added at first for clarity
-// 	fmt.Print("[+]Session Created")                          //2 New lines exist after this fuck me
-// 	hostname, user := hostinfo(conn)                         //Get some hostinfo instantly without much headache
-// 	currentSessionID := sl.registerSession(port, hostname, user, *conn)
-// 	fmt.Println("[!]Sesssion ID: " + strconv.Itoa(currentSessionID))
-// 	if notifURL != "" {
-// 		notifAgentConnected(hostname, currentSessionID, notifURL)
-// 	}
-// 	//ll.updateListenerStatus(port, "SESSION") //Not necessary left here for debug purposes
-// 	//Checks if the session is still alive. Rewrite this in the sessions and not in the listeners section
-// 	for {
-// 		//alive := sha256.Sum256([]byte("Areyoualive?!"))
-// 		if !authSession(conn) {
-// 			fmt.Println("[!]Cleaning Up")     //Need a way of exiting the go routine. Will impliment something cooler later.
-// 			sl.closeSession(currentSessionID) //We can use the updateSession functions instead if we want to keep a record of the dead sessions. There is a status field in the session struct after all
-// 			return
-// 		}
-// 		time.Sleep(10 * time.Second)
-// 	}
-// }
+func startHeartbeat(conn net.Conn, interval time.Duration, done chan struct{}) {
+	buffer := make([]byte, 1024)
+
+	for {
+		// Send ping
+		_, err := conn.Write([]byte("ping\n"))
+		if err != nil {
+			fmt.Println("[-] Failed to send ping:", err)
+			conn.Close()
+			close(done)
+			return
+		}
+
+		// Set read deadline
+		conn.SetReadDeadline(time.Now().Add(interval))
+
+		// Read response
+		n, err := conn.Read(buffer)
+		if err != nil {
+			fmt.Println("[-] No pong received (timeout or error):", err)
+			conn.Close()
+			close(done)
+			return
+		}
+
+		msg := strings.TrimSpace(string(buffer[:n]))
+		if msg != "pong" {
+			fmt.Println("[-] Invalid response to ping:", msg)
+			conn.Close()
+			close(done)
+			return
+		}
+
+		//fmt.Println("[+] Pong received")
+		time.Sleep(interval) // wait before next ping
+	}
+}
 
 func handleClient(ll *ListenerList, conn *net.Conn, port string, sl *SessionList, notifURL string) {
 	if !authSession(conn) {
@@ -74,18 +86,23 @@ func handleClient(ll *ListenerList, conn *net.Conn, port string, sl *SessionList
 		return
 	}
 
+	done := make(chan struct{})
+	go startHeartbeat(*conn, 30*time.Second, done)
+
 	for {
 		select {
 		case <-session.StopChan:
-			//fmt.Println("[!]Received signal to stop session")
+			fmt.Println("[!] Session requested to stop")
+			sl.closeSession(currentSessionID)
 			return
+
+		case <-done:
+			fmt.Println("[!] Heartbeat failed, closing session")
+			sl.closeSession(currentSessionID)
+			return
+
 		default:
-			if !authSession(conn) {
-				//fmt.Println("[!]Client dropped - Cleaning Up")
-				sl.closeSession(currentSessionID)
-				return
-			}
-			time.Sleep(10 * time.Second)
+			time.Sleep(2 * time.Second) // Keep loop light, real work is async
 		}
 	}
 }
@@ -180,17 +197,3 @@ func (ll *ListenerList) updateListenerStatus(targetPort string, status string /*
 	}
 	current.Status = status
 }
-
-// closeListeners closes all active listeners
-// func (ll *ListenerList) closeListeners() {
-// 	fmt.Println()
-// 	current := ll.Head
-// 	for current != nil {
-// 		fmt.Println("[!]Closing listener on port:", current.Port)
-// 		current.Listener.Close()
-// 		current = current.Next
-// 	}
-// 	ll.Head = nil // Reset the listener list
-// 	fmt.Println("[+]All listeners closed")
-// 	fmt.Println()
-// }

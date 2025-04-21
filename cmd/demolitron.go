@@ -43,7 +43,7 @@ type Session struct {
 	StopChan chan struct{}
 }
 
-// ListenerList represents a linked list of listeners
+// SessionList represents a linked list of listeners
 type SessionList struct {
 	Head *Session
 	Stop chan struct{}

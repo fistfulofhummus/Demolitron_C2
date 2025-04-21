@@ -12,7 +12,7 @@ import (
 // Just some theatrics
 func introSpinner(spinner_text string, spinnder_duration int, spinner_delay int) {
 	s := spinner.New(spinner.CharSets[32], time.Duration(spinner_delay)*time.Millisecond)
-	s.UpdateSpeed(400 * time.Millisecond)
+	s.UpdateSpeed(600 * time.Millisecond)
 	s.Prefix = spinner_text
 	//s.Suffix = "]" +
 	s.Color("red", "bold")

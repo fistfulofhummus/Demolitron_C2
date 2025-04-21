@@ -85,9 +85,10 @@ func handleClient(ll *ListenerList, conn *net.Conn, port string, sl *SessionList
 		fmt.Println("[-]Unable to retrieve session")
 		return
 	}
-
 	done := make(chan struct{})
-	go startHeartbeat(*conn, 30*time.Second, done)
+	if hostname != "" { //Ran into an issue where sometimes this function starts before we reccieve a response due to slow internet. This makes sure we populate list with the data before starting heartbeats
+		go startHeartbeat(*conn, 60*time.Second, done)
+	}
 
 	for {
 		select {

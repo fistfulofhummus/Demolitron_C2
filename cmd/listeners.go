@@ -86,9 +86,13 @@ func handleClient(ll *ListenerList, conn *net.Conn, port string, sl *SessionList
 		return
 	}
 	done := make(chan struct{})
-	if hostname != "" { //Ran into an issue where sometimes this function starts before we reccieve a response due to slow internet. This makes sure we populate list with the data before starting heartbeats
-		go startHeartbeat(*conn, 60*time.Second, done)
+	for {
+		if hostname != nil { //Ran into an issue where sometimes this function starts before we reccieve a response due to slow internet. This makes sure we populate list with the data before starting heartbeats
+			break
+		}
 	}
+
+	go startHeartbeat(*conn, 60*time.Second, done)
 
 	for {
 		select {

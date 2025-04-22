@@ -87,14 +87,17 @@ func handleClient(ll *ListenerList, conn *net.Conn, port string, sl *SessionList
 	}
 	//Ran into an issue where sometimes this function starts before we reccieve a response due to slow internet. This makes sure we populate list with the data before starting heartbeats
 	//Need a better fix. It still happens but less frequently
-	for {
-		if hostname != "" {
-			break
-		}
-	}
-
+	// for {
+	// 	if hostname != "" {
+	// 		break
+	// 	}
+	// }
+	//A better fix for the race condition me thinks
 	done := make(chan struct{})
-	go startHeartbeat(*conn, 120*time.Second, done)
+	go func() {
+		time.Sleep(5 * time.Second)
+		startHeartbeat(*conn, 120*time.Second, done)
+	}()
 
 	for {
 		select {

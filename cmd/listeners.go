@@ -95,7 +95,7 @@ func handleClient(ll *ListenerList, conn *net.Conn, port string, sl *SessionList
 	//A better fix for the race condition me thinks
 	done := make(chan struct{})
 	go func() {
-		time.Sleep(5 * time.Second)
+		time.Sleep(3 * time.Second)
 		startHeartbeat(*conn, 120*time.Second, done)
 	}()
 

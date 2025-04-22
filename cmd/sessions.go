@@ -63,7 +63,7 @@ func authSession(conn *net.Conn) bool {
 
 	// Perform authentication
 	if authString != "i_L0V_y0U_Ju5t1n_P3t3R\n" {
-		fmt.Println(authString)
+		//fmt.Println(authString)
 		fmt.Println("[-]Authentication failed")
 		fmt.Println()
 		(*conn).Close()

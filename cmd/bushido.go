@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+	"log"
 	"net"
 	"os"
 	"os/exec"
@@ -97,7 +98,6 @@ L: //Labeled the for loop with L if i need to break it from switch. Faster than 
 
 func hostinfo(conn *net.Conn) (string, string) {
 	fmt.Println()
-	(*conn).Write([]byte("hostname\n"))
 	request := make([]byte, 9000)
 	read_len, err := (*conn).Read(request)
 	if read_len == 0 {
@@ -108,18 +108,14 @@ func hostinfo(conn *net.Conn) (string, string) {
 		fmt.Println("[-]Error with reading from buffer")
 		return "ERROR", "ERROR"
 	}
-	hostname := string(request[:read_len])
-	(*conn).Write([]byte("whoami\n"))
-	read_len, err = (*conn).Read(request)
-	if read_len == 0 {
-		fmt.Println("[-]Read Length is 0")
+	info := string(request[:read_len])
+	parts := strings.SplitN(info, "\n", 2)
+	if len(parts) != 2 {
+		log.Println("[-] Invalid data format")
 		return "ERROR", "ERROR"
 	}
-	if err != nil {
-		fmt.Println("[-]Error with reading from buffer")
-		return "ERROR", "ERROR"
-	}
-	whoami := string(request[:read_len])
+	hostname := parts[0]
+	whoami := parts[1]
 	return hostname, whoami
 }
 

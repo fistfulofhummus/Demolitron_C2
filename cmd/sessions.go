@@ -129,8 +129,9 @@ func (ll *SessionList) displaySessionInfo(id int) {
 			fmt.Println()
 			fmt.Println("[!]Session Info Found !")
 			fmt.Println("[+]ID: " + idStr)
-			fmt.Print("[+]Hostname: " + current.Hostname) //New line is present within the hostname. Will remove it later
-			fmt.Println("[+]User: " + current.User)       //New line also is present here wtf windows ?!
+			fmt.Println("[+]Hostname: " + current.Hostname)
+			fmt.Println("[+]User: " + current.User)
+			fmt.Println()
 			return
 		}
 		current = current.Next

@@ -34,7 +34,6 @@ This will have the server notify you when the server is started and will notify 
  - [ ] A cross platform builder script
  - [ ] Upload/Download (File transfer via RSync or SCP perhaps ?)
  - [x] Persistence
- - [ ] Keylogging
  - [ ] RickRoll
 
 ## Notes:

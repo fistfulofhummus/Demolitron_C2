@@ -33,7 +33,7 @@ This will have the server notify you when the server is started and will notify 
  - [x] Inject Shellcode with CreateRemoteThread
  - [ ] A cross platform builder script
  - [ ] Upload/Download (File transfer via RSync or SCP perhaps ?)
- - [ ] Persistence
+ - [x] Persistence
  - [ ] Keylogging
  - [ ] RickRoll
 

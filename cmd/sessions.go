@@ -294,9 +294,12 @@ func openSession(id int, ll *SessionList) {
 					fmt.Println("   inject: Attempts to write and execute shellcode into a remote process")
 					fmt.Println("   load: Attempts to write and execute shellcode into the shell's process")
 					fmt.Println("   ls: Lists the contents of current directory. Will upgrade in future to be able to do remote ones too")
+					fmt.Println("   persist: Creates a scheduled task that runs the implant in C:\\Windows\\Temp\\5pCi1Mn.exe on boot (Admin+)") //Refine this a bit more
 					fmt.Println("   pwd: Prints the path to the implant")
 					fmt.Println("   shell: Drops down into a live powershell session")
 					fmt.Println()
+				case "persist":
+					persist(&current.Conn, "5pCi1Mn.exe")
 				default:
 					fmt.Println("\n[!]Invalid input\n")
 				}

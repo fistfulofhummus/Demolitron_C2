@@ -32,6 +32,7 @@ This will have the server notify you when the server is started and will notify 
  - [x] Inject Shellcode via Process Hollowing //Removed since kinda pointless having multiple techniques
  - [x] Inject Shellcode with CreateRemoteThread
  - [ ] A cross platform builder script
+ - [ ] Browser Cookie Stealer?
  - [ ] Upload/Download (File transfer via RSync or SCP perhaps ?)
  - [x] Persistence
  - [ ] RickRoll

